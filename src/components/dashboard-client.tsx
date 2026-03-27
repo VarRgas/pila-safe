@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createTransactionAction } from "@/app/actions/transactions";
 import { ChartSection } from "@/components/chart-section";
 import { DashboardFilters } from "@/components/dashboard-filters";
 import { NewTransactionModal } from "@/components/new-transaction-modal";
@@ -11,54 +13,74 @@ import { TransactionsTable } from "@/components/transactions-table";
 import {
   categoryFilters,
   chartCards,
-  initialTransactions,
   monthFilters,
-  summaryCards,
   transactionCategoriesByType,
 } from "@/modules/transactions/mock-data";
-import type { NewTransactionFormData, TransactionItem } from "@/shared/types/dashboard";
+import { supabase } from "@/shared/lib/supabase";
+import type {
+  NewTransactionFormData,
+  SummaryCardData,
+  TransactionItem,
+} from "@/shared/types/dashboard";
 
-function extractCurrencyDigits(value: string) {
-  return value.replace(/\D/g, "");
-}
+type DashboardClientProps = {
+  userEmail: string | null;
+  initialTransactions: TransactionItem[];
+  summaryCards: SummaryCardData[];
+};
 
-function formatCurrencyInput(value: string, type: TransactionItem["type"]) {
-  const signal = type === "RECEITA" ? "+" : "-";
-
-  return `${signal}${(Number(extractCurrencyDigits(value)) / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
-
-function formatDateLabel(value: string) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(`${value}T12:00:00`));
-}
-
-export function DashboardClient() {
+export function DashboardClient({
+  userEmail: initialUserEmail,
+  initialTransactions,
+  summaryCards,
+}: DashboardClientProps) {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isCreatingTransaction, setIsCreatingTransaction] = useState(false);
+  const [transactionError, setTransactionError] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(initialUserEmail);
 
-  const recentTransactions = useMemo(() => transactions.slice(0, 5), [transactions]);
+  const recentTransactions = useMemo(() => initialTransactions.slice(0, 5), [initialTransactions]);
 
-  function handleAddTransaction(formData: NewTransactionFormData) {
-    const newTransaction: TransactionItem = {
-      id: crypto.randomUUID(),
-      description: formData.description,
-      category: formData.category,
-      date: formatDateLabel(formData.date),
-      amount: formatCurrencyInput(formData.amount, formData.type),
-      type: formData.type,
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        router.replace("/login");
+        return;
+      }
+
+      setUserEmail(session.user.email ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
     };
+  }, [router]);
 
-    setTransactions((current) => [newTransaction, ...current]);
+  async function handleAddTransaction(formData: NewTransactionFormData) {
+    setIsCreatingTransaction(true);
+    setTransactionError(null);
+
+    const result = await createTransactionAction(formData);
+
+    if (!result.success || !result.transaction) {
+      setTransactionError(result.error ?? "Nao foi possivel salvar o lancamento.");
+      setIsCreatingTransaction(false);
+      return;
+    }
+
     setIsModalOpen(false);
+    setIsCreatingTransaction(false);
+    router.refresh();
+  }
+
+  async function handleLogout() {
+    setIsLoggingOut(true);
+    await supabase.auth.signOut();
+    router.replace("/login");
   }
 
   return (
@@ -78,6 +100,9 @@ export function DashboardClient() {
                   Um esboço inicial para acompanhar saldo, movimentações e indicadores com
                   clareza em qualquer tela.
                 </p>
+                {userEmail ? (
+                  <p className="mt-4 text-sm text-slate-500">Sessao ativa: {userEmail}</p>
+                ) : null}
               </div>
 
               <div className="flex flex-col gap-3 sm:min-w-[300px]">
@@ -102,6 +127,14 @@ export function DashboardClient() {
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => void handleLogout()}
+                    disabled={isLoggingOut}
+                    className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950 hover:shadow-sm disabled:translate-y-0 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:shadow-none"
+                  >
+                    {isLoggingOut ? "Saindo..." : "Sair"}
+                  </button>
                   <Link
                     href="#todos-os-lancamentos"
                     className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950 hover:shadow-sm"
@@ -160,7 +193,7 @@ export function DashboardClient() {
             </div>
 
             <div className="mt-6">
-              <TransactionsTable transactions={transactions} />
+              <TransactionsTable transactions={initialTransactions} />
             </div>
           </section>
         </div>
@@ -170,8 +203,13 @@ export function DashboardClient() {
           key={isModalOpen ? "open" : "closed"}
           isOpen={isModalOpen}
           categoriesByType={transactionCategoriesByType}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setTransactionError(null);
+            setIsModalOpen(false);
+          }}
           onSubmit={handleAddTransaction}
+          isSubmitting={isCreatingTransaction}
+          submitError={transactionError}
         />
     </>
   );

@@ -20,6 +20,7 @@ model Category {
 
 model Transaction {
   id          String          @id @default(uuid())
+  userId      String          @db.Uuid
   description String
   amount      Decimal
   type        TransactionType
@@ -27,6 +28,8 @@ model Transaction {
   createdAt   DateTime        @default(now())
   categoryId  String?
   category    Category?       @relation(fields: [categoryId], references: [id])
+
+  @@index([userId])
 }
 
 enum TransactionType {

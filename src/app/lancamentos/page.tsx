@@ -1,8 +1,21 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { TransactionsTable } from "@/components/transactions-table";
-import { initialTransactions } from "@/modules/transactions/mock-data";
+import { getTransactionsByUserId, mapTransactionsToItems } from "@/modules/transactions/server";
+import { createSupabaseServerClient } from "@/shared/lib/supabase-server";
 
-export default function TransactionsPage() {
+export default async function TransactionsPage() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const transactions = await getTransactionsByUserId(user.id);
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.14),_transparent_42%),linear-gradient(180deg,_#f8fafc_0%,_#eef4ff_100%)] px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
@@ -30,7 +43,7 @@ export default function TransactionsPage() {
           </div>
 
           <div className="mt-6">
-            <TransactionsTable transactions={initialTransactions} />
+            <TransactionsTable transactions={mapTransactionsToItems(transactions)} />
           </div>
         </section>
       </div>

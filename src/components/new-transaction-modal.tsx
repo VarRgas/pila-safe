@@ -7,7 +7,9 @@ type NewTransactionModalProps = {
   isOpen: boolean;
   categoriesByType: Record<TransactionType, string[]>;
   onClose: () => void;
-  onSubmit: (data: NewTransactionFormData) => void;
+  onSubmit: (data: NewTransactionFormData) => Promise<void> | void;
+  isSubmitting?: boolean;
+  submitError?: string | null;
 };
 
 const defaultFormData: NewTransactionFormData = {
@@ -33,6 +35,8 @@ export function NewTransactionModal({
   categoriesByType,
   onClose,
   onSubmit,
+  isSubmitting = false,
+  submitError = null,
 }: NewTransactionModalProps) {
   const [formData, setFormData] = useState(defaultFormData);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -108,7 +112,7 @@ export function NewTransactionModal({
     });
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const nextErrors = validateForm();
@@ -118,9 +122,7 @@ export function NewTransactionModal({
       return;
     }
 
-    onSubmit(formData);
-    setFormData(defaultFormData);
-    setErrors({});
+    await onSubmit(formData);
   }
 
   return (
@@ -153,6 +155,12 @@ export function NewTransactionModal({
         </div>
 
         <form className="flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6" onSubmit={handleSubmit}>
+          {submitError ? (
+            <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {submitError}
+            </div>
+          ) : null}
+
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="sm:col-span-2">
               <span className="mb-2 block text-sm font-medium text-slate-700">Descrição</span>
@@ -272,15 +280,17 @@ export function NewTransactionModal({
                 setErrors({});
                 onClose();
               }}
+              disabled={isSubmitting}
               className="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              disabled={isSubmitting}
+              className="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
-              Salvar lançamento
+              {isSubmitting ? "Salvando..." : "Salvar lançamento"}
             </button>
           </div>
         </form>
