@@ -67,7 +67,9 @@ export const initialTransactions: TransactionItem[] = [
     description: "Salario principal",
     category: "Receita",
     date: "05 Abr 2026",
+    dateValue: "2026-04-05",
     amount: "+R$ 8.500,00",
+    amountValue: "R$ 8.500,00",
     type: "RECEITA",
   },
   {
@@ -75,7 +77,9 @@ export const initialTransactions: TransactionItem[] = [
     description: "Aluguel",
     category: "Moradia",
     date: "06 Abr 2026",
+    dateValue: "2026-04-06",
     amount: "-R$ 1.850,00",
+    amountValue: "R$ 1.850,00",
     type: "DESPESA",
   },
   {
@@ -83,7 +87,9 @@ export const initialTransactions: TransactionItem[] = [
     description: "Tesouro Selic",
     category: "Investimentos",
     date: "08 Abr 2026",
+    dateValue: "2026-04-08",
     amount: "-R$ 1.200,00",
+    amountValue: "R$ 1.200,00",
     type: "INVESTIMENTO",
   },
   {
@@ -91,7 +97,9 @@ export const initialTransactions: TransactionItem[] = [
     description: "Freelance UX",
     category: "Receita extra",
     date: "11 Abr 2026",
+    dateValue: "2026-04-11",
     amount: "+R$ 1.980,00",
+    amountValue: "R$ 1.980,00",
     type: "RECEITA",
   },
   {
@@ -99,7 +107,9 @@ export const initialTransactions: TransactionItem[] = [
     description: "Supermercado",
     category: "Alimentacao",
     date: "12 Abr 2026",
+    dateValue: "2026-04-12",
     amount: "-R$ 465,00",
+    amountValue: "R$ 465,00",
     type: "DESPESA",
   },
 ];

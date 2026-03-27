@@ -73,7 +73,7 @@ export function LoginForm() {
       return;
     }
 
-    router.replace("/");
+    router.replace("/dashboard");
   }
 
   return (

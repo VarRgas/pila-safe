@@ -128,7 +128,7 @@ export function RegisterForm() {
     }
 
     if (data.session) {
-      router.replace("/");
+      router.replace("/dashboard");
       return;
     }
 

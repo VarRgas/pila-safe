@@ -26,7 +26,9 @@ export type TransactionItem = {
   description: string;
   category: string;
   date: string;
+  dateValue: string;
   amount: string;
+  amountValue: string;
   type: TransactionType;
 };
 

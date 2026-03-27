@@ -30,26 +30,28 @@ export function SummaryCard({ card, index }: SummaryCardProps) {
 
   return (
     <article
-      className="group relative overflow-hidden rounded-3xl border border-white/70 bg-white/85 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_16px_45px_rgba(15,23,42,0.10)]"
+      className="group relative overflow-hidden rounded-3xl border border-white/70 bg-white/85 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_16px_45px_rgba(15,23,42,0.10)] sm:p-5"
       style={{ animationDelay: `${index * 80}ms` }}
     >
       <div className="absolute inset-x-0 top-0 h-1.5 bg-slate-100">
         <div className={`h-full w-24 rounded-r-full ${tone.accent}`} />
       </div>
 
-      <div className="mt-3 flex items-start justify-between gap-4">
+      <div className="mt-2 flex flex-col gap-3 sm:mt-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-slate-500">{card.title}</p>
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500 sm:text-sm sm:normal-case sm:tracking-normal">
+            {card.title}
+          </p>
           <strong
-            className={`mt-3 block text-2xl font-semibold tracking-tight text-slate-950 ${
-              isBalanceCard ? "whitespace-nowrap" : ""
+            className={`mt-2 block text-2xl font-semibold tracking-tight text-slate-950 sm:mt-3 sm:text-2xl ${
+              isBalanceCard ? "sm:whitespace-nowrap" : ""
             }`}
           >
             {card.amount}
           </strong>
           {isBalanceCard ? (
             <span
-              className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${tone.badge}`}
+              className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold sm:mt-3 sm:px-3 sm:text-xs ${tone.badge}`}
             >
               {card.change}
             </span>
@@ -57,7 +59,7 @@ export function SummaryCard({ card, index }: SummaryCardProps) {
         </div>
 
         {!isBalanceCard ? (
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tone.badge}`}>
+          <span className={`inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-semibold sm:px-3 sm:text-xs ${tone.badge}`}>
             {card.change}
           </span>
         ) : null}

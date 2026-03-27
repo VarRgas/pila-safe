@@ -11,8 +11,21 @@ type TransactionRecord = {
   amount: { toString(): string };
   type: TransactionItem["type"];
   date: Date;
-  category: { name: string } | null;
+  category?: { name: string } | null;
 };
+
+function formatDateInput(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function formatCurrencyInput(amount: string) {
+  return Number(amount).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
 
 function extractCurrencyDigits(value: string) {
   return value.replace(/\D/g, "");
@@ -56,9 +69,39 @@ function toTransactionItem(transaction: TransactionRecord): TransactionItem {
     description: transaction.description,
     category: transaction.category?.name ?? "Sem categoria",
     date: formatDate(transaction.date),
+    dateValue: formatDateInput(transaction.date),
     amount: formatCurrency(transaction.amount.toString(), transaction.type),
+    amountValue: formatCurrencyInput(transaction.amount.toString()),
     type: transaction.type,
   };
+}
+
+async function resolveCategoryId(type: TransactionItem["type"], categoryName: string) {
+  const normalizedCategoryName = categoryName.trim();
+
+  if (!normalizedCategoryName) {
+    return null;
+  }
+
+  const existingCategory = await prisma.category.findFirst({
+    where: {
+      name: normalizedCategoryName,
+      type,
+    },
+  });
+
+  if (existingCategory) {
+    return existingCategory.id;
+  }
+
+  const category = await prisma.category.create({
+    data: {
+      name: normalizedCategoryName,
+      type,
+    },
+  });
+
+  return category.id;
 }
 
 export async function getTransactionsByUserId(userId: string) {
@@ -134,27 +177,7 @@ export function buildSummaryCards(transactions: TransactionRecord[]): SummaryCar
 }
 
 export async function createTransactionForUser(userId: string, formData: NewTransactionFormData) {
-  const categoryName = formData.category.trim();
-
-  const existingCategory = categoryName
-    ? await prisma.category.findFirst({
-        where: {
-          name: categoryName,
-          type: formData.type,
-        },
-      })
-    : null;
-
-  const category = existingCategory
-    ? existingCategory
-    : categoryName
-      ? await prisma.category.create({
-          data: {
-            name: categoryName,
-            type: formData.type,
-          },
-        })
-      : null;
+  const categoryId = await resolveCategoryId(formData.type, formData.category);
 
   const transaction = await prisma.transaction.create({
     data: {
@@ -163,7 +186,7 @@ export async function createTransactionForUser(userId: string, formData: NewTran
       amount: parseCurrencyToDecimalString(formData.amount),
       type: formData.type,
       date: new Date(`${formData.date}T12:00:00`),
-      categoryId: category?.id,
+      categoryId,
     },
     include: {
       category: true,
@@ -171,4 +194,52 @@ export async function createTransactionForUser(userId: string, formData: NewTran
   });
 
   return toTransactionItem(transaction);
+}
+
+export async function updateTransactionForUser(
+  userId: string,
+  transactionId: string,
+  formData: NewTransactionFormData,
+) {
+  const existingTransaction = await prisma.transaction.findFirst({
+    where: {
+      id: transactionId,
+      userId,
+    },
+  });
+
+  if (!existingTransaction) {
+    return null;
+  }
+
+  const categoryId = await resolveCategoryId(formData.type, formData.category);
+
+  const transaction = await prisma.transaction.update({
+    where: {
+      id: transactionId,
+    },
+    data: {
+      description: formData.description.trim(),
+      amount: parseCurrencyToDecimalString(formData.amount),
+      type: formData.type,
+      date: new Date(`${formData.date}T12:00:00`),
+      categoryId,
+    },
+    include: {
+      category: true,
+    },
+  });
+
+  return toTransactionItem(transaction);
+}
+
+export async function deleteTransactionForUser(userId: string, transactionId: string) {
+  const result = await prisma.transaction.deleteMany({
+    where: {
+      id: transactionId,
+      userId,
+    },
+  });
+
+  return result.count > 0;
 }

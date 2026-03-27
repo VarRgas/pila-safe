@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { NewTransactionFormData, TransactionType } from "@/shared/types/dashboard";
+import type { NewTransactionFormData, TransactionItem, TransactionType } from "@/shared/types/dashboard";
 
 type NewTransactionModalProps = {
   isOpen: boolean;
@@ -10,15 +10,22 @@ type NewTransactionModalProps = {
   onSubmit: (data: NewTransactionFormData) => Promise<void> | void;
   isSubmitting?: boolean;
   submitError?: string | null;
+  initialData?: TransactionItem | null;
 };
 
-const defaultFormData: NewTransactionFormData = {
-  description: "",
-  type: "DESPESA",
-  category: "",
-  amount: "",
-  date: "2026-04-15",
-};
+function getTodayDateValue() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getDefaultFormData(): NewTransactionFormData {
+  return {
+    description: "",
+    type: "DESPESA",
+    category: "",
+    amount: "",
+    date: getTodayDateValue(),
+  };
+}
 
 const typeOptions: TransactionType[] = ["RECEITA", "DESPESA", "INVESTIMENTO"];
 
@@ -37,9 +44,21 @@ export function NewTransactionModal({
   onSubmit,
   isSubmitting = false,
   submitError = null,
+  initialData = null,
 }: NewTransactionModalProps) {
-  const [formData, setFormData] = useState(defaultFormData);
+  const [formData, setFormData] = useState<NewTransactionFormData>(() =>
+    initialData
+      ? {
+          description: initialData.description,
+          type: initialData.type,
+          category: initialData.category === "Sem categoria" ? "" : initialData.category,
+          amount: initialData.amountValue,
+          date: initialData.dateValue,
+        }
+      : getDefaultFormData(),
+  );
   const [errors, setErrors] = useState<FormErrors>({});
+  const isEditMode = Boolean(initialData);
 
   const currentCategories = categoriesByType[formData.type];
 
@@ -126,35 +145,37 @@ export function NewTransactionModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 px-3 py-3 backdrop-blur-sm sm:items-center sm:px-4 sm:py-8">
-      <div className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.20)] sm:max-h-[88vh]">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-5 sm:px-8 sm:py-6">
-          <div>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 p-2 backdrop-blur-sm sm:items-center sm:px-4 sm:py-8">
+      <div className="flex max-h-[100dvh] w-full max-w-2xl min-w-0 flex-col overflow-hidden rounded-[24px] border border-white/70 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.20)] sm:max-h-[88vh] sm:rounded-[28px]">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:gap-4 sm:px-8 sm:py-6">
+          <div className="min-w-0 flex-1">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Novo lançamento
+              {isEditMode ? "Editar lançamento" : "Novo lançamento"}
             </span>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
-              Adicionar movimentação financeira
+            <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+              {isEditMode ? "Atualizar movimentação financeira" : "Adicionar movimentação financeira"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Preencha os campos para inserir um novo item mockado na listagem.
+              {isEditMode
+                ? "Revise os campos e salve as alterações deste lançamento."
+                : "Preencha os campos para inserir um novo item na sua listagem."}
             </p>
           </div>
 
           <button
             type="button"
             onClick={() => {
-              setFormData(defaultFormData);
+              setFormData(getDefaultFormData());
               setErrors({});
               onClose();
             }}
-            className="rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+            className="shrink-0 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
           >
             Fechar
           </button>
         </div>
 
-        <form className="flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6" onSubmit={handleSubmit}>
+        <form className="flex-1 overflow-y-auto px-4 py-4 sm:px-8 sm:py-6" onSubmit={handleSubmit}>
           {submitError ? (
             <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
               {submitError}
@@ -191,7 +212,7 @@ export function NewTransactionModal({
                       key={option}
                       type="button"
                       onClick={() => updateField("type", option)}
-                      className={`min-h-12 whitespace-nowrap rounded-2xl border px-4 py-3 text-sm font-semibold transition md:flex-1 ${
+                      className={`min-h-12 min-w-0 whitespace-nowrap rounded-2xl border px-3 py-3 text-sm font-semibold transition md:flex-1 ${
                         isActive
                           ? `${typeButtonClasses[option]} shadow-sm ring-2 ring-offset-1 ${
                               option === "RECEITA"
@@ -210,7 +231,7 @@ export function NewTransactionModal({
               </div>
             </div>
 
-            <label>
+            <label className="min-w-0">
               <span className="mb-2 block text-sm font-medium text-slate-700">Categoria</span>
               <select
                 value={formData.category}
@@ -233,7 +254,7 @@ export function NewTransactionModal({
               ) : null}
             </label>
 
-            <label>
+            <label className="min-w-0">
               <span className="mb-2 block text-sm font-medium text-slate-700">Valor</span>
               <input
                 required
@@ -253,7 +274,7 @@ export function NewTransactionModal({
               ) : null}
             </label>
 
-            <label>
+            <label className="min-w-0">
               <span className="mb-2 block text-sm font-medium text-slate-700">Data</span>
               <input
                 required
@@ -276,21 +297,21 @@ export function NewTransactionModal({
             <button
               type="button"
               onClick={() => {
-                setFormData(defaultFormData);
+                setFormData(getDefaultFormData());
                 setErrors({});
                 onClose();
               }}
               disabled={isSubmitting}
-              className="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 sm:w-auto"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400 sm:w-auto"
             >
-              {isSubmitting ? "Salvando..." : "Salvar lançamento"}
+              {isSubmitting ? "Salvando..." : isEditMode ? "Salvar alterações" : "Salvar lançamento"}
             </button>
           </div>
         </form>
