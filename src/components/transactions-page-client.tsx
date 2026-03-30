@@ -46,18 +46,38 @@ export function TransactionsPageClient({
   const [editingTransaction, setEditingTransaction] = useState<TransactionItem | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("date-desc");
+  const [selectedMonth, setSelectedMonth] = useState("");
+
+  const availableMonths = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat("pt-BR", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+
+    return [...new Set(transactions.map((transaction) => transaction.dateValue.slice(0, 7)))]
+      .sort((first, second) => second.localeCompare(first))
+      .map((monthValue) => ({
+        value: monthValue,
+        label: formatter.format(new Date(`${monthValue}-01T00:00:00Z`)),
+      }));
+  }, [transactions]);
 
   const visibleTransactions = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
+    const filteredByMonth = selectedMonth
+      ? transactions.filter((transaction) => transaction.dateValue.startsWith(selectedMonth))
+      : transactions;
+
     const filteredTransactions = normalizedSearch
-      ? transactions.filter((transaction) => {
+      ? filteredByMonth.filter((transaction) => {
           const descriptionMatch = transaction.description.toLowerCase().includes(normalizedSearch);
           const categoryMatch = transaction.category.toLowerCase().includes(normalizedSearch);
 
           return descriptionMatch || categoryMatch;
         })
-      : transactions;
+      : filteredByMonth;
 
     return [...filteredTransactions].sort((first, second) => {
       if (sortBy === "date-desc") {
@@ -74,7 +94,7 @@ export function TransactionsPageClient({
 
       return parseCurrencyValue(first.amountValue) - parseCurrencyValue(second.amountValue);
     });
-  }, [searchTerm, sortBy, transactions]);
+  }, [searchTerm, selectedMonth, sortBy, transactions]);
 
   useEffect(() => {
     setTransactions(initialTransactions);
@@ -239,7 +259,7 @@ export function TransactionsPageClient({
               </div>
             </div>
 
-            <div className="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[minmax(0,1fr)_220px] sm:items-end">
+            <div className="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-3 sm:items-end">
               <label className="min-w-0">
                 <span className="mb-2 block text-sm font-medium text-slate-700">Buscar</span>
                 <input
@@ -249,6 +269,22 @@ export function TransactionsPageClient({
                   placeholder="Buscar por descrição ou categoria"
                   className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
                 />
+              </label>
+
+              <label>
+                <span className="mb-2 block text-sm font-medium text-slate-700">Mês</span>
+                <select
+                  value={selectedMonth}
+                  onChange={(event) => setSelectedMonth(event.target.value)}
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition hover:border-slate-300 focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                >
+                  <option value="">Todos os meses</option>
+                  {availableMonths.map((month) => (
+                    <option key={month.value} value={month.value}>
+                      {month.label}
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <label>
