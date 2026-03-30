@@ -35,6 +35,11 @@ export function AppHeader({ userEmail }: AppHeaderProps) {
     mobileMenuRef.current?.removeAttribute("open");
   }
 
+  function navigateToSecurity() {
+    closeMobileMenu();
+    router.push("/conta#seguranca");
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut();
     router.replace("/login");
@@ -131,13 +136,13 @@ export function AppHeader({ userEmail }: AppHeaderProps) {
                 Minha conta
               </Link>
 
-              <Link
-                href="/conta#seguranca"
-                onClick={closeMobileMenu}
-                className="rounded-2xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+              <button
+                type="button"
+                onClick={navigateToSecurity}
+                className="rounded-2xl px-3 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
               >
                 Segurança
-              </Link>
+              </button>
 
               <button
                 type="button"

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 type UserMenuProps = {
   userEmail: string | null;
@@ -23,6 +24,7 @@ function getUserInitial(userEmail: string | null) {
 }
 
 export function UserMenu({ userEmail, onLogout }: UserMenuProps) {
+  const router = useRouter();
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
   const compactLabel = useMemo(() => getUserLabel(userEmail), [userEmail]);
@@ -30,6 +32,11 @@ export function UserMenu({ userEmail, onLogout }: UserMenuProps) {
 
   function closeMenu() {
     detailsRef.current?.removeAttribute("open");
+  }
+
+  function navigateToSecurity() {
+    closeMenu();
+    router.push("/conta#seguranca");
   }
 
   return (
@@ -41,7 +48,7 @@ export function UserMenu({ userEmail, onLogout }: UserMenuProps) {
 
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-slate-900">{compactLabel}</span>
-          <span className="block truncate text-xs text-slate-500">Conta e seguranca</span>
+          <span className="block truncate text-xs text-slate-500">Conta e segurança</span>
         </span>
 
         <span className="text-slate-400 transition group-open:rotate-180">▾</span>
@@ -62,13 +69,13 @@ export function UserMenu({ userEmail, onLogout }: UserMenuProps) {
             Minha conta
           </Link>
 
-          <Link
-            href="/conta#seguranca"
-            onClick={closeMenu}
-            className="rounded-2xl px-3 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+          <button
+            type="button"
+            onClick={navigateToSecurity}
+            className="rounded-2xl px-3 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
           >
-            Seguranca
-          </Link>
+            Segurança
+          </button>
 
           <button
             type="button"

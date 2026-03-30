@@ -26,7 +26,7 @@ export function ChartSection({ charts }: ChartSectionProps) {
             </div>
 
             <span className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
-              Mock visual
+              Dados reais
             </span>
           </div>
 
@@ -40,7 +40,7 @@ export function ChartSection({ charts }: ChartSectionProps) {
                   />
                 </div>
                 <span className="text-center text-xs font-medium text-slate-400">
-                  S{index + 1}
+                  {chart.labels?.[index] ?? `S${index + 1}`}
                 </span>
               </div>
             ))}

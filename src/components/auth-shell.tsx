@@ -24,17 +24,17 @@ export function AuthShell({
               PilaSafe
             </span>
             <h1 className="mt-6 max-w-md text-4xl font-semibold tracking-tight text-slate-950">
-              Controle financeiro com clareza, foco e confianca.
+              Controle financeiro com clareza, foco e confiança.
             </h1>
             <p className="mt-4 max-w-lg text-base leading-7 text-slate-600">
-              Uma experiencia visual simples e profissional para acompanhar movimentacoes,
-              planejar categorias e evoluir seu fluxo financeiro com seguranca.
+              Uma experiência visual simples e profissional para acompanhar movimentações,
+              planejar categorias e evoluir seu fluxo financeiro com segurança.
             </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2">
               <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  Visao centralizada
+                  Visão centralizada
                 </p>
                 <strong className="mt-3 block text-lg font-semibold text-slate-950">
                   Dashboard organizado

@@ -36,7 +36,7 @@ function getPasswordStrength(password: string) {
   }
 
   if (score <= 3) {
-    return { label: "Media", color: "bg-amber-500", text: "text-amber-600", value: 2 };
+    return { label: "Média", color: "bg-amber-500", text: "text-amber-600", value: 2 };
   }
 
   return { label: "Forte", color: "bg-emerald-500", text: "text-emerald-600", value: 3 };
@@ -143,7 +143,7 @@ export function RegisterForm() {
       description="Comece com um fluxo claro e organizado para acompanhar gastos, receitas e investimentos com tranquilidade."
       footer={
         <div>
-          Ja possui conta?{" "}
+          Já possui conta?{" "}
           <Link href="/login" className="font-semibold text-slate-900 transition hover:text-emerald-700">
             Voltar ao login
           </Link>
@@ -178,7 +178,7 @@ export function RegisterForm() {
           type="email"
           inputMode="email"
           autoComplete="email"
-          placeholder="voce@exemplo.com"
+          placeholder="você@exemplo.com"
           value={formData.email}
           onChange={(event) => updateField("email", event.target.value)}
           error={errors.email}

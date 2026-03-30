@@ -84,7 +84,7 @@ export function LoginForm() {
       footer={
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <span>
-            Ainda nao tem conta?{" "}
+            Ainda não tem conta?{" "}
             <Link href="/cadastro" className="font-semibold text-slate-900 transition hover:text-emerald-700">
               Criar conta
             </Link>
@@ -107,7 +107,7 @@ export function LoginForm() {
           type="email"
           inputMode="email"
           autoComplete="email"
-          placeholder="voce@exemplo.com"
+          placeholder="você@exemplo.com"
           value={formData.email}
           onChange={(event) => updateField("email", event.target.value)}
           error={errors.email}

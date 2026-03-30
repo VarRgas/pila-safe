@@ -1,13 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import type { NewTransactionFormData, TransactionItem, TransactionType } from "@/shared/types/dashboard";
+import { useMemo, useState } from "react";
+import type {
+  CategoryOptionsByType,
+  NewTransactionFormData,
+  TransactionItem,
+  TransactionType,
+} from "@/shared/types/dashboard";
 
 type NewTransactionModalProps = {
   isOpen: boolean;
-  categoriesByType: Record<TransactionType, string[]>;
+  categoriesByType: CategoryOptionsByType;
   onClose: () => void;
   onSubmit: (data: NewTransactionFormData) => Promise<void> | void;
+  onCreateCategory?: (type: TransactionType, name: string) => Promise<string | null>;
   isSubmitting?: boolean;
   submitError?: string | null;
   initialData?: TransactionItem | null;
@@ -42,6 +48,7 @@ export function NewTransactionModal({
   categoriesByType,
   onClose,
   onSubmit,
+  onCreateCategory,
   isSubmitting = false,
   submitError = null,
   initialData = null,
@@ -58,12 +65,60 @@ export function NewTransactionModal({
       : getDefaultFormData(),
   );
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [categoryQuery, setCategoryQuery] = useState(() =>
+    initialData?.category === "Sem categoria" ? "" : initialData?.category ?? "",
+  );
+  const [newCategoryError, setNewCategoryError] = useState<string | null>(null);
   const isEditMode = Boolean(initialData);
 
   const currentCategories = categoriesByType[formData.type];
+  const normalizedCategoryQuery = categoryQuery.trim().toLowerCase();
+  const filteredCategories = useMemo(() => {
+    if (!normalizedCategoryQuery) {
+      return currentCategories;
+    }
+
+    return currentCategories.filter((category) =>
+      category.toLowerCase().includes(normalizedCategoryQuery),
+    );
+  }, [currentCategories, normalizedCategoryQuery]);
+  const exactCategoryMatch = currentCategories.find(
+    (category) => category.toLowerCase() === normalizedCategoryQuery,
+  );
 
   if (!isOpen) {
     return null;
+  }
+
+  async function handleCreateCategory() {
+    if (!onCreateCategory) {
+      return;
+    }
+
+    const normalizedName = categoryQuery.trim();
+
+    if (!normalizedName) {
+      setNewCategoryError("Informe um nome para a categoria.");
+      return;
+    }
+
+    setIsCreatingCategory(true);
+    setNewCategoryError(null);
+
+    const createdCategoryName = await onCreateCategory(formData.type, normalizedName);
+
+    if (!createdCategoryName) {
+      setNewCategoryError("Não foi possível salvar a categoria.");
+      setIsCreatingCategory(false);
+      return;
+    }
+
+    setFormData((current) => ({ ...current, category: createdCategoryName }));
+    setCategoryQuery(createdCategoryName);
+    setIsCategoryOpen(false);
+    setIsCreatingCategory(false);
   }
 
   function updateField<K extends keyof NewTransactionFormData>(field: K, value: NewTransactionFormData[K]) {
@@ -76,6 +131,9 @@ export function NewTransactionModal({
         type: nextType,
         category: nextCategories.includes(current.category) ? current.category : "",
       }));
+      setCategoryQuery(nextCategories.includes(formData.category) ? formData.category : "");
+      setIsCategoryOpen(false);
+      setNewCategoryError(null);
 
       if (errors.type || errors.category) {
         setErrors((current) => ({
@@ -103,6 +161,11 @@ export function NewTransactionModal({
     }
 
     if (!formData.category.trim()) {
+      if (exactCategoryMatch) {
+        setFormData((current) => ({ ...current, category: exactCategoryMatch }));
+        return nextErrors;
+      }
+
       nextErrors.category = "Selecione uma categoria.";
     }
 
@@ -231,28 +294,101 @@ export function NewTransactionModal({
               </div>
             </div>
 
-            <label className="min-w-0">
+            <div className="min-w-0">
               <span className="mb-2 block text-sm font-medium text-slate-700">Categoria</span>
-              <select
-                value={formData.category}
-                onChange={(event) => updateField("category", event.target.value)}
-                className={`h-12 w-full rounded-2xl border px-4 pr-10 text-sm text-slate-900 shadow-sm outline-none transition appearance-none bg-right bg-no-repeat focus:bg-white focus:ring-2 focus:ring-slate-300 ${
-                  errors.category
-                    ? "border-rose-300 bg-rose-50 hover:border-rose-400 focus:border-rose-400"
-                    : "border-slate-200 bg-white hover:border-slate-400 focus:border-slate-400"
-                }`}
+              <div
+                className="relative"
+                onFocus={() => setIsCategoryOpen(true)}
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                    setIsCategoryOpen(false);
+                    setNewCategoryError(null);
+
+                    if (formData.category) {
+                      setCategoryQuery(formData.category);
+                    }
+                  }
+                }}
               >
-                <option value="">Selecione uma categoria</option>
-                {currentCategories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
+                <input
+                  value={categoryQuery}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    const exactMatch = currentCategories.find(
+                      (category) => category.toLowerCase() === nextValue.trim().toLowerCase(),
+                    );
+
+                    setCategoryQuery(nextValue);
+                    setNewCategoryError(null);
+                    setIsCategoryOpen(true);
+                    updateField("category", exactMatch ?? "");
+                  }}
+                  placeholder="Selecione ou busque uma categoria"
+                  className={`h-12 w-full rounded-2xl border px-4 pr-10 text-sm text-slate-900 shadow-sm outline-none transition focus:bg-white focus:ring-2 focus:ring-slate-300 ${
+                    errors.category
+                      ? "border-rose-300 bg-rose-50 hover:border-rose-400 focus:border-rose-400"
+                      : "border-slate-200 bg-white hover:border-slate-400 focus:border-slate-400"
+                  }`}
+                />
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                  ▾
+                </span>
+
+                {isCategoryOpen ? (
+                  <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_16px_45px_rgba(15,23,42,0.12)]">
+                    <div className="max-h-60 overflow-y-auto p-2">
+                      {filteredCategories.length > 0 ? (
+                        filteredCategories.map((category) => (
+                          <button
+                            key={category}
+                            type="button"
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => {
+                              setCategoryQuery(category);
+                              updateField("category", category);
+                              setIsCategoryOpen(false);
+                              setNewCategoryError(null);
+                            }}
+                            className={`flex w-full items-center justify-between rounded-2xl px-3 py-3 text-left text-sm transition ${
+                              formData.category === category
+                                ? "bg-slate-900 text-white"
+                                : "text-slate-700 hover:bg-slate-50 hover:text-slate-950"
+                            }`}
+                          >
+                            <span>{category}</span>
+                            {formData.category === category ? <span className="text-xs">Selecionada</span> : null}
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-3 py-3 text-sm text-slate-500">Nenhuma categoria encontrada.</div>
+                      )}
+
+                      {onCreateCategory && normalizedCategoryQuery && !exactCategoryMatch ? (
+                        <button
+                          type="button"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => void handleCreateCategory()}
+                          disabled={isCreatingCategory}
+                          className="mt-2 flex w-full items-center justify-between rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-left text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <span>Criar categoria &quot;{categoryQuery.trim()}&quot;</span>
+                          <span className="text-xs text-slate-500">
+                            {isCreatingCategory ? "Salvando..." : "Nova"}
+                          </span>
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
               {errors.category ? (
                 <span className="mt-2 block text-sm text-rose-600">{errors.category}</span>
               ) : null}
-            </label>
+              {newCategoryError ? (
+                <span className="mt-2 block text-sm text-rose-600">{newCategoryError}</span>
+              ) : null}
+            </div>
 
             <label className="min-w-0">
               <span className="mb-2 block text-sm font-medium text-slate-700">Valor</span>

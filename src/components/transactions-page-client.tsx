@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  createCategoryAction,
   createTransactionAction,
   deleteTransactionAction,
   updateTransactionAction,
@@ -11,11 +12,11 @@ import {
 import { FeedbackToast } from "@/components/feedback-toast";
 import { NewTransactionModal } from "@/components/new-transaction-modal";
 import { TransactionsTable } from "@/components/transactions-table";
-import { transactionCategoriesByType } from "@/modules/transactions/mock-data";
 import { supabase } from "@/shared/lib/supabase";
-import type { NewTransactionFormData, TransactionItem } from "@/shared/types/dashboard";
+import type { CategoryOptionsByType, NewTransactionFormData, TransactionItem } from "@/shared/types/dashboard";
 
 type TransactionsPageClientProps = {
+  categoriesByType: CategoryOptionsByType;
   initialTransactions: TransactionItem[];
 };
 
@@ -30,8 +31,12 @@ function parseCurrencyValue(value: string) {
   return Number(value.replace(/[^\d,-]/g, "").replace(".", "").replace(",", ".")) || 0;
 }
 
-export function TransactionsPageClient({ initialTransactions }: TransactionsPageClientProps) {
+export function TransactionsPageClient({
+  categoriesByType,
+  initialTransactions,
+}: TransactionsPageClientProps) {
   const router = useRouter();
+  const [categoryOptions, setCategoryOptions] = useState(categoriesByType);
   const [transactions, setTransactions] = useState(initialTransactions);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,6 +81,10 @@ export function TransactionsPageClient({ initialTransactions }: TransactionsPage
   }, [initialTransactions]);
 
   useEffect(() => {
+    setCategoryOptions(categoriesByType);
+  }, [categoriesByType]);
+
+  useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -99,7 +108,7 @@ export function TransactionsPageClient({ initialTransactions }: TransactionsPage
       : await createTransactionAction(formData);
 
     if (!result.success || !result.transaction) {
-      setSubmitError(result.error ?? "Nao foi possivel salvar o lancamento.");
+      setSubmitError(result.error ?? "Não foi possível salvar o lançamento.");
       setIsSubmitting(false);
       return;
     }
@@ -143,7 +152,7 @@ export function TransactionsPageClient({ initialTransactions }: TransactionsPage
 
     if (!result.success) {
       setToast({
-        message: result.error ?? "Nao foi possivel excluir a movimentação.",
+        message: result.error ?? "Não foi possível excluir a movimentação.",
         tone: "error",
       });
       setPendingDeleteId(null);
@@ -164,6 +173,29 @@ export function TransactionsPageClient({ initialTransactions }: TransactionsPage
     setSubmitError(null);
     setToast(null);
     setIsModalOpen(true);
+  }
+
+  async function handleCreateCategory(type: TransactionItem["type"], name: string) {
+    const result = await createCategoryAction(type, name);
+
+    if (!result.success || !result.categoryName) {
+      setToast({
+        message: result.error ?? "Não foi possível criar a categoria.",
+        tone: "error",
+      });
+      return null;
+    }
+
+    setCategoryOptions((current) => ({
+      ...current,
+      [type]: [...current[type], result.categoryName!].sort((first, second) => first.localeCompare(second)),
+    }));
+    setToast({
+      message: "Categoria criada com sucesso",
+      tone: "success",
+    });
+
+    return result.categoryName;
   }
 
   return (
@@ -253,12 +285,13 @@ export function TransactionsPageClient({ initialTransactions }: TransactionsPage
       <NewTransactionModal
         key={`${isModalOpen ? "open" : "closed"}-${editingTransaction?.id ?? "new"}`}
         isOpen={isModalOpen}
-        categoriesByType={transactionCategoriesByType}
+        categoriesByType={categoryOptions}
         onClose={() => {
           setSubmitError(null);
           setEditingTransaction(null);
           setIsModalOpen(false);
         }}
+        onCreateCategory={handleCreateCategory}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
         submitError={submitError}

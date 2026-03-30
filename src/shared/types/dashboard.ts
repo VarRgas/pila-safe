@@ -16,10 +16,13 @@ export type ChartCardData = {
   title: string;
   subtitle: string;
   bars: number[];
+  labels?: string[];
   tone: "success" | "info";
 };
 
 export type TransactionType = "RECEITA" | "DESPESA" | "INVESTIMENTO";
+
+export type CategoryOptionsByType = Record<TransactionType, string[]>;
 
 export type TransactionItem = {
   id: string;

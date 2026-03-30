@@ -26,7 +26,7 @@ export function getAuthErrorMessage(message: string) {
   const normalizedMessage = message.toLowerCase();
 
   if (normalizedMessage.includes("invalid login credentials")) {
-    return "E-mail ou senha invalidos.";
+    return "E-mail ou senha inválidos.";
   }
 
   if (normalizedMessage.includes("email not confirmed")) {
@@ -34,12 +34,12 @@ export function getAuthErrorMessage(message: string) {
   }
 
   if (normalizedMessage.includes("user already registered")) {
-    return "Ja existe uma conta com este e-mail.";
+    return "Já existe uma conta com este e-mail.";
   }
 
   if (normalizedMessage.includes("password should be at least")) {
     return "A senha precisa ter pelo menos 6 caracteres.";
   }
 
-  return "Nao foi possivel concluir a operacao agora. Tente novamente.";
+  return "Não foi possível concluir a operação agora. Tente novamente.";
 }

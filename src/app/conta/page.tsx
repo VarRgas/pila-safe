@@ -26,10 +26,10 @@ export default async function AccountPage() {
                   Minha conta
                 </span>
                 <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-                  Conta e seguranca
+                  Conta e segurança
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                  Gerencie os dados principais da sua conta e as acoes de seguranca do PilaSafe.
+                  Gerencie os dados principais da sua conta e as ações de segurança do PilaSafe.
                 </p>
               </div>
 

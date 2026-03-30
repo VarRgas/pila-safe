@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { DashboardClient } from "@/components/dashboard-client";
 import {
+  buildChartCards,
   buildSummaryCards,
+  getCategoryOptionsByType,
   getTransactionsByUserId,
   mapTransactionsToItems,
 } from "@/modules/transactions/server";
@@ -20,11 +22,15 @@ export default async function DashboardPage() {
 
   const transactions = await getTransactionsByUserId(user.id);
   const summaryCards = buildSummaryCards(transactions);
+  const chartCards = buildChartCards(transactions);
+  const categoriesByType = await getCategoryOptionsByType(user.id);
 
   return (
     <>
       <AppHeader userEmail={user.email ?? null} />
       <DashboardClient
+        categoriesByType={categoriesByType}
+        chartCards={chartCards}
         initialTransactions={mapTransactionsToItems(transactions)}
         summaryCards={summaryCards}
       />

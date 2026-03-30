@@ -24,7 +24,7 @@ export function AccountSecurityCard({ userEmail }: AccountSecurityCardProps) {
     });
 
     if (error) {
-      setErrorMessage("Nao foi possivel enviar o e-mail de redefinicao agora.");
+      setErrorMessage("Não foi possível enviar o e-mail de redefinição agora.");
       setIsSubmitting(false);
       return;
     }
@@ -41,13 +41,13 @@ export function AccountSecurityCard({ userEmail }: AccountSecurityCardProps) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-            Seguranca
+            Segurança
           </span>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
-            Redefinicao de senha
+            Redefinição de senha
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Envie um e-mail seguro de redefinicao para atualizar sua senha usando o fluxo do
+            Envie um e-mail seguro de redefinição para atualizar sua senha usando o fluxo do
             Supabase Auth.
           </p>
         </div>

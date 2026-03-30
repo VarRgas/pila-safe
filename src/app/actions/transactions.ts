@@ -2,12 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import {
+  createCategoryForUser,
   createTransactionForUser,
   deleteTransactionForUser,
   updateTransactionForUser,
 } from "@/modules/transactions/server";
 import { createSupabaseServerClient } from "@/shared/lib/supabase-server";
-import type { NewTransactionFormData, TransactionItem } from "@/shared/types/dashboard";
+import type { NewTransactionFormData, TransactionItem, TransactionType } from "@/shared/types/dashboard";
 
 type CreateTransactionActionResult = {
   success: boolean;
@@ -38,7 +39,7 @@ export async function createTransactionAction(
   if (!userId) {
     return {
       success: false,
-      error: "Sua sessao expirou. Entre novamente para continuar.",
+      error: "Sua sessão expirou. Entre novamente para continuar.",
     };
   }
 
@@ -61,7 +62,7 @@ export async function updateTransactionAction(
   if (!userId) {
     return {
       success: false,
-      error: "Sua sessao expirou. Entre novamente para continuar.",
+      error: "Sua sessão expirou. Entre novamente para continuar.",
     };
   }
 
@@ -70,7 +71,7 @@ export async function updateTransactionAction(
   if (!transaction) {
     return {
       success: false,
-      error: "Nao foi possivel editar este lancamento.",
+      error: "Não foi possível editar este lançamento.",
     };
   }
 
@@ -88,7 +89,7 @@ export async function deleteTransactionAction(transactionId: string) {
   if (!userId) {
     return {
       success: false,
-      error: "Sua sessao expirou. Entre novamente para continuar.",
+      error: "Sua sessão expirou. Entre novamente para continuar.",
     };
   }
 
@@ -97,7 +98,7 @@ export async function deleteTransactionAction(transactionId: string) {
   if (!deleted) {
     return {
       success: false,
-      error: "Nao foi possivel excluir este lancamento.",
+      error: "Não foi possível excluir este lançamento.",
     };
   }
 
@@ -105,5 +106,32 @@ export async function deleteTransactionAction(transactionId: string) {
 
   return {
     success: true,
+  };
+}
+
+export async function createCategoryAction(type: TransactionType, name: string) {
+  const userId = await getAuthenticatedUserId();
+
+  if (!userId) {
+    return {
+      success: false,
+      error: "Sua sessão expirou. Entre novamente para continuar.",
+    };
+  }
+
+  const categoryName = await createCategoryForUser(userId, type, name);
+
+  if (!categoryName) {
+    return {
+      success: false,
+      error: "Informe um nome válido para a categoria.",
+    };
+  }
+
+  revalidateTransactionPages();
+
+  return {
+    success: true,
+    categoryName,
   };
 }

@@ -13,9 +13,13 @@ datasource db {
 
 model Category {
   id           String        @id @default(uuid())
+  userId       String        @db.Uuid
   name         String
   type         TransactionType
   transactions Transaction[]
+
+  @@index([userId])
+  @@unique([userId, type, name])
 }
 
 model Transaction {
