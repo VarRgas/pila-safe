@@ -28,7 +28,7 @@ export function FeedbackToast({ message, tone, onClose }: FeedbackToastProps) {
   }, [onClose]);
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-20 z-50 flex justify-center px-4 sm:top-24 sm:justify-end sm:px-6 lg:px-8">
+    <div className="pointer-events-none fixed inset-x-0 bottom-5 z-50 flex justify-center px-4 sm:justify-end sm:px-6 lg:px-8">
       <div
         className={`pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl border px-4 py-3 shadow-[0_16px_45px_rgba(15,23,42,0.12)] ${toneClasses[tone]}`}
         role="status"

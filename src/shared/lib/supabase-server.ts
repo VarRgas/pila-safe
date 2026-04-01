@@ -32,7 +32,12 @@ export async function createSupabaseServerClient() {
       },
       setAll(cookiesToSet: CookieToSet[]) {
         cookiesToSet.forEach(({ name, value, options }) => {
-          cookieStore.set(name, value, options);
+          try {
+            cookieStore.set(name, value, options);
+          } catch {
+            // Server Components can read cookies here, but only Server Actions
+            // and Route Handlers can persist updated cookies.
+          }
         });
       },
     },

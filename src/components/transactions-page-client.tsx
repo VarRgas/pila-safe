@@ -36,6 +36,7 @@ export function TransactionsPageClient({
   initialTransactions,
 }: TransactionsPageClientProps) {
   const router = useRouter();
+  const [formResetKey, setFormResetKey] = useState(0);
   const [categoryOptions, setCategoryOptions] = useState(categoriesByType);
   const [transactions, setTransactions] = useState(initialTransactions);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -151,8 +152,14 @@ export function TransactionsPageClient({
         : "Movimentação criada com sucesso",
       tone: "success",
     });
-    setEditingTransaction(null);
-    setIsModalOpen(false);
+
+    if (editingTransaction) {
+      setEditingTransaction(null);
+      setIsModalOpen(false);
+    } else {
+      setFormResetKey((current) => current + 1);
+    }
+
     setIsSubmitting(false);
     router.refresh();
   }
@@ -319,7 +326,7 @@ export function TransactionsPageClient({
       </main>
 
       <NewTransactionModal
-        key={`${isModalOpen ? "open" : "closed"}-${editingTransaction?.id ?? "new"}`}
+        key={`${isModalOpen ? "open" : "closed"}-${editingTransaction?.id ?? `new-${formResetKey}`}`}
         isOpen={isModalOpen}
         categoriesByType={categoryOptions}
         onClose={() => {

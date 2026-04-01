@@ -43,7 +43,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
         </span>
       </div>
 
-      <div className="mt-4 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+      <div className="mt-4 flex flex-wrap gap-2">
         {filterOptions.map((option) => (
           <button
             key={option.value}

@@ -2,6 +2,8 @@ import { prisma } from "@/shared/lib/prisma";
 import type {
   CategoryOptionsByType,
   ChartCardData,
+  DashboardStatus,
+  DashboardMonthOption,
   NewTransactionFormData,
   SummaryCardData,
   TransactionItem,
@@ -87,17 +89,6 @@ function formatDate(date: Date) {
   }).format(date);
 }
 
-function normalizeBars(values: number[]) {
-  const safeValues = values.map((value) => Math.max(value, 0));
-  const maxValue = Math.max(...safeValues, 0);
-
-  if (maxValue === 0) {
-    return safeValues.map(() => 12);
-  }
-
-  return safeValues.map((value) => Math.max(12, Math.round((value / maxValue) * 100)));
-}
-
 function toTransactionItem(transaction: TransactionRecord): TransactionItem {
   return {
     id: transaction.id,
@@ -166,6 +157,29 @@ export async function getTransactionsByUserId(userId: string) {
   });
 }
 
+export function getAvailableMonths(transactions: TransactionRecord[]): DashboardMonthOption[] {
+  const formatter = new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+
+  return [...new Set(transactions.map((transaction) => formatDateInput(transaction.date).slice(0, 7)))]
+    .sort((first, second) => second.localeCompare(first))
+    .map((value) => ({
+      value,
+      label: formatter.format(new Date(`${value}-01T00:00:00Z`)),
+    }));
+}
+
+export function filterTransactionsByMonth(transactions: TransactionRecord[], month: string | undefined) {
+  if (!month) {
+    return transactions;
+  }
+
+  return transactions.filter((transaction) => formatDateInput(transaction.date).startsWith(month));
+}
+
 export function mapTransactionsToItems(transactions: TransactionRecord[]) {
   return transactions.map(toTransactionItem);
 }
@@ -224,21 +238,52 @@ export async function getCategoryOptionsByType(userId: string): Promise<Category
 }
 
 export function buildChartCards(transactions: TransactionRecord[]): ChartCardData[] {
-  const monthlyMap = new Map<string, { label: string; receita: number; saida: number }>();
-  const categoryTotals = new Map<string, number>();
+  const totals = transactions.reduce(
+    (accumulator, transaction) => {
+      const amount = Number(transaction.amount.toString());
+
+      if (transaction.type === "RECEITA") {
+        accumulator.receita += amount;
+      }
+
+      if (transaction.type === "DESPESA") {
+        accumulator.despesa += amount;
+      }
+
+      if (transaction.type === "INVESTIMENTO") {
+        accumulator.investimento += amount;
+      }
+
+      return accumulator;
+    },
+    {
+      receita: 0,
+      despesa: 0,
+      investimento: 0,
+    },
+  );
+
+  const saldo = Math.max(totals.receita - totals.despesa - totals.investimento, 0);
+
+  const monthlyMap = new Map<string, { label: string; receita: number; despesa: number; investimento: number }>();
 
   transactions.forEach((transaction) => {
     const amount = Number(transaction.amount.toString());
     const monthKey = formatDateInput(transaction.date).slice(0, 7);
     const monthLabel = new Intl.DateTimeFormat("pt-BR", {
       month: "short",
-    }).format(transaction.date);
+      timeZone: "UTC",
+    })
+      .format(transaction.date)
+      .replace(".", "")
+      .toUpperCase();
 
     if (!monthlyMap.has(monthKey)) {
       monthlyMap.set(monthKey, {
-        label: monthLabel.replace(".", ""),
+        label: monthLabel,
         receita: 0,
-        saida: 0,
+        despesa: 0,
+        investimento: 0,
       });
     }
 
@@ -246,41 +291,105 @@ export function buildChartCards(transactions: TransactionRecord[]): ChartCardDat
 
     if (transaction.type === "RECEITA") {
       currentMonth.receita += amount;
-    } else {
-      currentMonth.saida += amount;
     }
 
-    const categoryName = transaction.category?.name ?? "Sem categoria";
-    categoryTotals.set(categoryName, (categoryTotals.get(categoryName) ?? 0) + amount);
+    if (transaction.type === "DESPESA") {
+      currentMonth.despesa += amount;
+    }
+
+    if (transaction.type === "INVESTIMENTO") {
+      currentMonth.investimento += amount;
+    }
   });
 
-  const recentMonths = [...monthlyMap.entries()]
+  const timelineMonths = [...monthlyMap.entries()]
     .sort(([firstKey], [secondKey]) => firstKey.localeCompare(secondKey))
     .slice(-6)
     .map(([, value]) => value);
 
-  const categoryDistribution: Array<[string, number]> = [...categoryTotals.entries()]
-    .sort((first, second) => second[1] - first[1])
-    .slice(0, 5);
-
-  const monthBars = recentMonths.length > 0 ? recentMonths : [{ label: "sem", receita: 0, saida: 0 }];
-  const categoryBars: Array<[string, number]> =
-    categoryDistribution.length > 0 ? categoryDistribution : [["Sem", 0]];
+  const normalizedTimeline =
+    timelineMonths.length > 0
+      ? timelineMonths
+      : [{ label: "SEM", receita: 0, despesa: 0, investimento: 0 }];
 
   return [
     {
-      title: "Fluxo mensal",
-      subtitle: "Entradas e saídas consolidadas dos últimos meses",
-      bars: normalizeBars(monthBars.map((month) => month.receita + month.saida)),
-      labels: monthBars.map((month) => month.label),
-      tone: "success",
+      kind: "timeline",
+      title: "Comparativo mês a mês",
+      subtitle: "Compare receitas, despesas e investimentos ao longo dos meses do período disponível.",
+      labels: normalizedTimeline.map((month) => month.label),
+      series: [
+        {
+          label: "Receitas",
+          tone: "success",
+          values: normalizedTimeline.map((month) => month.receita),
+          formatted: normalizedTimeline.map((month) => formatAbsoluteCurrency(month.receita)),
+        },
+        {
+          label: "Despesas",
+          tone: "danger",
+          values: normalizedTimeline.map((month) => month.despesa),
+          formatted: normalizedTimeline.map((month) => formatAbsoluteCurrency(month.despesa)),
+        },
+        {
+          label: "Investimentos",
+          tone: "info",
+          values: normalizedTimeline.map((month) => month.investimento),
+          formatted: normalizedTimeline.map((month) => formatAbsoluteCurrency(month.investimento)),
+        },
+      ],
     },
     {
-      title: "Categorias com maior peso",
-      subtitle: "Distribuição das movimentações por categoria",
-      bars: normalizeBars(categoryBars.map(([, total]) => total)),
-      labels: categoryBars.map(([name]) => name.slice(0, 3)),
-      tone: "info",
+      kind: "comparison",
+      title: "Fluxo do período",
+      subtitle: "Veja quanto entrou, quanto saiu e quanto foi investido no período selecionado.",
+      items: [
+        {
+          label: "Entrou",
+          value: totals.receita,
+          formatted: formatAbsoluteCurrency(totals.receita),
+          tone: "success",
+        },
+        {
+          label: "Gastou",
+          value: totals.despesa,
+          formatted: formatAbsoluteCurrency(totals.despesa),
+          tone: "danger",
+        },
+        {
+          label: "Investiu",
+          value: totals.investimento,
+          formatted: formatAbsoluteCurrency(totals.investimento),
+          tone: "info",
+        },
+      ],
+    },
+    {
+      kind: "distribution",
+      title: "Destino da receita",
+      subtitle: "Uma visão clara de quanto da receita virou despesa, investimento ou saldo restante.",
+      totalLabel: "Receita total",
+      totalValue: formatAbsoluteCurrency(totals.receita),
+      items: [
+        {
+          label: "Despesas",
+          value: totals.despesa,
+          formatted: formatAbsoluteCurrency(totals.despesa),
+          color: "#f43f5e",
+        },
+        {
+          label: "Investimentos",
+          value: totals.investimento,
+          formatted: formatAbsoluteCurrency(totals.investimento),
+          color: "#0ea5e9",
+        },
+        {
+          label: "Saldo restante",
+          value: saldo,
+          formatted: formatAbsoluteCurrency(saldo),
+          color: "#475569",
+        },
+      ],
     },
   ];
 }
@@ -339,6 +448,36 @@ export function buildSummaryCards(transactions: TransactionRecord[]): SummaryCar
       tone: "neutral",
     },
   ];
+}
+
+export function getDashboardPeriodLabel(selectedMonth: string | undefined, availableMonths: DashboardMonthOption[]) {
+  if (selectedMonth) {
+    return availableMonths.find((month) => month.value === selectedMonth)?.label ?? selectedMonth;
+  }
+
+  return "Todos os meses";
+}
+
+export function getDashboardStatus(transactions: TransactionRecord[]): DashboardStatus {
+  const saldo = transactions.reduce((accumulator, transaction) => {
+    const amount = Number(transaction.amount.toString());
+
+    if (transaction.type === "RECEITA") {
+      return accumulator + amount;
+    }
+
+    return accumulator - amount;
+  }, 0);
+
+  if (saldo > 0) {
+    return "Saudável";
+  }
+
+  if (saldo === 0) {
+    return "Neutro";
+  }
+
+  return "Em alerta";
 }
 
 export async function createTransactionForUser(userId: string, formData: NewTransactionFormData) {

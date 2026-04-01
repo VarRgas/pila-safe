@@ -93,7 +93,7 @@ export function AppHeader({ userEmail }: AppHeaderProps) {
             <span className="text-lg">≡</span>
           </summary>
 
-          <div className="absolute right-0 top-full z-30 mt-3 w-[min(20rem,calc(100vw-2rem))] rounded-3xl border border-slate-200 bg-white p-3 shadow-[0_16px_45px_rgba(15,23,42,0.12)]">
+          <div className="fixed inset-x-4 top-20 z-30 rounded-3xl border border-slate-200 bg-white p-3 shadow-[0_16px_45px_rgba(15,23,42,0.12)] sm:top-24">
             <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white">
                 {userInitial}
