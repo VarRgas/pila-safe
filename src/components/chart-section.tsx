@@ -92,8 +92,8 @@ export function ChartSection({ charts }: ChartSectionProps) {
                       </div>
 
                       {chart.labels.map((label, monthIndex) => (
-                        <div key={label} className="grid grid-rows-[1fr_auto] gap-3 min-w-0">
-                          <div className="relative flex h-full items-end justify-center gap-2 border-b border-slate-200">
+                        <div key={label} className="grid grid-rows-[1fr_auto_auto] gap-2 min-w-0 sm:gap-3">
+                          <div className="relative flex h-full items-end justify-center gap-1 border-b border-slate-200 sm:gap-2">
                             {[0, 25, 50, 75, 100].map((tick) => (
                               <div
                                 key={tick}
@@ -111,11 +111,27 @@ export function ChartSection({ charts }: ChartSectionProps) {
                                   <div
                                     className={`w-2.5 rounded-t-md sm:w-5 ${timelineToneClasses[serie.tone]}`}
                                     style={{ height: `${height}%` }}
-                                    title={`${serie.label}: ${serie.formatted[monthIndex] ?? "R$ 0,00"}`}
                                   />
                                 </div>
                               );
                             })}
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-1 text-center">
+                            {chart.series.map((serie) => (
+                              <span
+                                key={serie.label}
+                                className={`truncate text-[9px] font-medium sm:text-[10px] ${
+                                  serie.tone === "success"
+                                    ? "text-emerald-700"
+                                    : serie.tone === "danger"
+                                      ? "text-rose-700"
+                                      : "text-sky-700"
+                                }`}
+                              >
+                                {serie.formatted[monthIndex]}
+                              </span>
+                            ))}
                           </div>
 
                           <div className="text-center text-[10px] font-semibold text-slate-500 sm:text-xs">

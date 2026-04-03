@@ -40,6 +40,11 @@ type TransactionRecord = {
   category?: { name: string } | null;
 };
 
+type CategoryOptionRecord = {
+  name: string;
+  type: TransactionItem["type"];
+};
+
 function formatDateInput(date: Date) {
   return date.toISOString().slice(0, 10);
 }
@@ -215,9 +220,13 @@ export async function createCategoryForUser(userId: string, type: TransactionIte
 }
 
 export async function getCategoryOptionsByType(userId: string): Promise<CategoryOptionsByType> {
-  const categories = await prisma.category.findMany({
+  const categories: CategoryOptionRecord[] = await prisma.category.findMany({
     where: {
       userId,
+    },
+    select: {
+      name: true,
+      type: true,
     },
     orderBy: [{ type: "asc" }, { name: "asc" }],
   });
