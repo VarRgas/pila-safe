@@ -243,7 +243,15 @@ export function DashboardClient({
             <ChartSection charts={secondaryCharts} />
           </section>
 
-          <section className="grid gap-6">
+          <section className="grid gap-4">
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Evolução mensal
+              </span>
+              <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
+                Comparativo mês a mês
+              </h2>
+            </div>
             <ChartSection charts={primaryCharts} />
           </section>
         </div>
