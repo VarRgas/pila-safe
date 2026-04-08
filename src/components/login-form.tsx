@@ -89,7 +89,7 @@ export function LoginForm() {
               Criar conta
             </Link>
           </span>
-          <Link href="#" className="font-medium text-slate-500 transition hover:text-slate-900">
+          <Link href="/recuperar-senha" className="font-medium text-slate-500 transition hover:text-slate-900">
             Esqueci minha senha
           </Link>
         </div>

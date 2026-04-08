@@ -17,7 +17,7 @@ export function AccountSecurityCard({ userEmail }: AccountSecurityCardProps) {
     setSuccessMessage(null);
     setErrorMessage(null);
 
-    const redirectTo = `${window.location.origin}/login`;
+    const redirectTo = `${window.location.origin}/redefinir-senha`;
 
     const { error } = await supabase.auth.resetPasswordForEmail(userEmail, {
       redirectTo,
@@ -29,7 +29,7 @@ export function AccountSecurityCard({ userEmail }: AccountSecurityCardProps) {
       return;
     }
 
-    setSuccessMessage("Enviamos um e-mail com instrucoes para redefinir sua senha.");
+    setSuccessMessage("Enviamos um e-mail com instruções para redefinir sua senha.");
     setIsSubmitting(false);
   }
 

@@ -71,9 +71,14 @@ export function TransactionsTable({
                       <button
                         type="button"
                         onClick={() => onEdit(transaction)}
-                        className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                        className="inline-flex min-h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                        aria-label={`Editar ${transaction.description}`}
+                        title="Editar"
                       >
-                        Editar
+                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 20h4l10-10-4-4L4 16v4Z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m12 6 4 4" />
+                        </svg>
                       </button>
                     ) : null}
                     {onDelete ? (
@@ -81,9 +86,21 @@ export function TransactionsTable({
                         type="button"
                         onClick={() => onDelete(transaction)}
                         disabled={pendingDeleteId === transaction.id}
-                        className="inline-flex min-h-10 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex min-h-10 w-10 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label={`Excluir ${transaction.description}`}
+                        title="Excluir"
                       >
-                        {pendingDeleteId === transaction.id ? "Excluindo..." : "Excluir"}
+                        {pendingDeleteId === transaction.id ? (
+                          "..."
+                        ) : (
+                          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M10 11v6" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14 11v6" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 7l1 12h10l1-12" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 7V4h6v3" />
+                          </svg>
+                        )}
                       </button>
                     ) : null}
                   </div>
@@ -102,9 +119,14 @@ export function TransactionsTable({
                   <button
                     type="button"
                     onClick={() => onEdit(transaction)}
-                    className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                    className="inline-flex min-h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                    aria-label={`Editar ${transaction.description}`}
+                    title="Editar"
                   >
-                    Editar
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 20h4l10-10-4-4L4 16v4Z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m12 6 4 4" />
+                    </svg>
                   </button>
                 ) : null}
                 {onDelete ? (
@@ -112,9 +134,21 @@ export function TransactionsTable({
                     type="button"
                     onClick={() => onDelete(transaction)}
                     disabled={pendingDeleteId === transaction.id}
-                    className="inline-flex min-h-10 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex min-h-10 w-10 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label={`Excluir ${transaction.description}`}
+                    title="Excluir"
                   >
-                    {pendingDeleteId === transaction.id ? "Excluindo..." : "Excluir"}
+                    {pendingDeleteId === transaction.id ? (
+                      "..."
+                    ) : (
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 11v6" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14 11v6" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 7l1 12h10l1-12" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 7V4h6v3" />
+                      </svg>
+                    )}
                   </button>
                 ) : null}
               </div>

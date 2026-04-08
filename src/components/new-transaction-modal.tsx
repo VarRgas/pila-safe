@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   CategoryOptionsByType,
   NewTransactionFormData,
@@ -87,6 +87,34 @@ export function NewTransactionModal({
   const exactCategoryMatch = currentCategories.find(
     (category) => category.toLowerCase() === normalizedCategoryQuery,
   );
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyPosition = document.body.style.position;
+    const previousBodyTop = document.body.style.top;
+    const previousBodyWidth = document.body.style.width;
+
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+
+    return () => {
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.position = previousBodyPosition;
+      document.body.style.top = previousBodyTop;
+      document.body.style.width = previousBodyWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen]);
 
   if (!isOpen) {
     return null;
@@ -209,7 +237,7 @@ export function NewTransactionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 p-2 backdrop-blur-sm sm:items-center sm:px-4 sm:py-8">
-      <div className="flex max-h-[100dvh] w-full max-w-2xl min-w-0 flex-col overflow-hidden rounded-[24px] border border-white/70 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.20)] sm:max-h-[88vh] sm:rounded-[28px]">
+      <div className="flex max-h-[100dvh] w-full max-w-2xl min-w-0 flex-col overflow-visible rounded-[24px] border border-white/70 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.20)] sm:max-h-[88vh] sm:rounded-[28px]">
         <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:gap-4 sm:px-8 sm:py-6">
           <div className="min-w-0 flex-1">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -238,7 +266,11 @@ export function NewTransactionModal({
           </button>
         </div>
 
-        <form className="flex-1 overflow-y-auto px-4 py-4 sm:px-8 sm:py-6" onSubmit={handleSubmit}>
+        <form
+          className="flex-1 overflow-y-auto overflow-x-visible px-4 py-4 sm:px-8 sm:py-6"
+          onSubmit={handleSubmit}
+          style={{ scrollbarGutter: "stable" }}
+        >
           {submitError ? (
             <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
               {submitError}
@@ -297,7 +329,7 @@ export function NewTransactionModal({
             <div className="min-w-0">
               <span className="mb-2 block text-sm font-medium text-slate-700">Categoria</span>
               <div
-                className="relative"
+                className="relative z-20"
                 onFocus={() => setIsCategoryOpen(true)}
                 onBlur={(event) => {
                   if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
