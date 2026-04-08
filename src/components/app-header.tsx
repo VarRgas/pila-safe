@@ -8,6 +8,7 @@ import { supabase } from "@/shared/lib/supabase";
 
 type AppHeaderProps = {
   userEmail: string | null;
+  userName: string | null;
 };
 
 const navigationItems = [
@@ -15,29 +16,31 @@ const navigationItems = [
   { href: "/lancamentos", label: "Lançamentos" },
 ];
 
-export function AppHeader({ userEmail }: AppHeaderProps) {
+export function AppHeader({ userEmail, userName }: AppHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
 
   const compactUserLabel = useMemo(() => {
+    if (userName?.trim()) {
+      return userName.length > 18 ? `${userName.slice(0, 18)}...` : userName;
+    }
+
     if (!userEmail) {
       return "Minha conta";
     }
 
     const [localPart] = userEmail.split("@");
     return localPart.length > 18 ? `${localPart.slice(0, 18)}...` : localPart;
-  }, [userEmail]);
+  }, [userEmail, userName]);
 
-  const userInitial = useMemo(() => userEmail?.charAt(0).toUpperCase() ?? "P", [userEmail]);
+  const userInitial = useMemo(
+    () => userName?.charAt(0).toUpperCase() ?? userEmail?.charAt(0).toUpperCase() ?? "P",
+    [userEmail, userName],
+  );
 
   function closeMobileMenu() {
     mobileMenuRef.current?.removeAttribute("open");
-  }
-
-  function navigateToSecurity() {
-    closeMobileMenu();
-    router.push("/conta#seguranca");
   }
 
   async function handleLogout() {
@@ -63,7 +66,7 @@ export function AppHeader({ userEmail }: AppHeaderProps) {
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-2 md:flex">
+          <nav className="hidden items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/80 p-1.5 md:flex">
             {navigationItems.map((item) => {
               const isActive = pathname === item.href;
 
@@ -71,10 +74,10 @@ export function AppHeader({ userEmail }: AppHeaderProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-2xl px-4 py-2.5 text-sm font-semibold transition ${
+                  className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                     isActive
-                      ? "bg-slate-900 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                      ? "bg-white text-slate-950 shadow-[0_6px_18px_rgba(15,23,42,0.08)]"
+                      : "text-slate-600 hover:bg-white hover:text-slate-950"
                   }`}
                 >
                   {item.label}
@@ -85,7 +88,7 @@ export function AppHeader({ userEmail }: AppHeaderProps) {
         </div>
 
         <div className="hidden md:flex md:justify-end">
-          <UserMenu userEmail={userEmail} onLogout={handleLogout} />
+          <UserMenu userEmail={userEmail} userName={userName} onLogout={handleLogout} />
         </div>
 
         <details ref={mobileMenuRef} className="relative md:hidden">
@@ -135,14 +138,6 @@ export function AppHeader({ userEmail }: AppHeaderProps) {
               >
                 Minha conta
               </Link>
-
-              <button
-                type="button"
-                onClick={navigateToSecurity}
-                className="rounded-2xl px-3 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
-              >
-                Segurança
-              </button>
 
               <button
                 type="button"

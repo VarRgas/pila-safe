@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import { useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
 
 type UserMenuProps = {
   userEmail: string | null;
+  userName: string | null;
   onLogout: () => Promise<void> | void;
 };
 
-function getUserLabel(userEmail: string | null) {
+function getUserLabel(userName: string | null, userEmail: string | null) {
+  if (userName?.trim()) {
+    return userName.length > 18 ? `${userName.slice(0, 18)}...` : userName;
+  }
+
   if (!userEmail) {
     return "Minha conta";
   }
@@ -19,24 +23,18 @@ function getUserLabel(userEmail: string | null) {
   return localPart.length > 18 ? `${localPart.slice(0, 18)}...` : localPart;
 }
 
-function getUserInitial(userEmail: string | null) {
-  return userEmail?.charAt(0).toUpperCase() ?? "P";
+function getUserInitial(userName: string | null, userEmail: string | null) {
+  return userName?.charAt(0).toUpperCase() ?? userEmail?.charAt(0).toUpperCase() ?? "P";
 }
 
-export function UserMenu({ userEmail, onLogout }: UserMenuProps) {
-  const router = useRouter();
+export function UserMenu({ userEmail, userName, onLogout }: UserMenuProps) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
-  const compactLabel = useMemo(() => getUserLabel(userEmail), [userEmail]);
-  const userInitial = useMemo(() => getUserInitial(userEmail), [userEmail]);
+  const compactLabel = useMemo(() => getUserLabel(userName, userEmail), [userEmail, userName]);
+  const userInitial = useMemo(() => getUserInitial(userName, userEmail), [userEmail, userName]);
 
   function closeMenu() {
     detailsRef.current?.removeAttribute("open");
-  }
-
-  function navigateToSecurity() {
-    closeMenu();
-    router.push("/conta#seguranca");
   }
 
   return (
@@ -68,14 +66,6 @@ export function UserMenu({ userEmail, onLogout }: UserMenuProps) {
           >
             Minha conta
           </Link>
-
-          <button
-            type="button"
-            onClick={navigateToSecurity}
-            className="rounded-2xl px-3 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
-          >
-            Segurança
-          </button>
 
           <button
             type="button"

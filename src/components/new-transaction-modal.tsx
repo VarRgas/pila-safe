@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type {
   CategoryOptionsByType,
   NewTransactionFormData,
@@ -71,7 +72,10 @@ export function NewTransactionModal({
     initialData?.category === "Sem categoria" ? "" : initialData?.category ?? "",
   );
   const [newCategoryError, setNewCategoryError] = useState<string | null>(null);
+  const [categoryDropdownStyle, setCategoryDropdownStyle] = useState<React.CSSProperties>({});
   const isEditMode = Boolean(initialData);
+  const categoryFieldRef = useRef<HTMLDivElement>(null);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
   const currentCategories = categoriesByType[formData.type];
   const normalizedCategoryQuery = categoryQuery.trim().toLowerCase();
@@ -99,22 +103,86 @@ export function NewTransactionModal({
     const previousBodyPosition = document.body.style.position;
     const previousBodyTop = document.body.style.top;
     const previousBodyWidth = document.body.style.width;
+    const previousBodyTouchAction = document.body.style.touchAction;
+    const previousHtmlOverscroll = document.documentElement.style.overscrollBehavior;
+    const previousBodyOverscroll = document.body.style.overscrollBehavior;
 
     document.documentElement.style.overflow = "hidden";
+    document.documentElement.style.overscrollBehavior = "none";
     document.body.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "none";
     document.body.style.position = "fixed";
     document.body.style.top = `-${scrollY}px`;
     document.body.style.width = "100%";
+    document.body.style.touchAction = "none";
 
     return () => {
       document.documentElement.style.overflow = previousHtmlOverflow;
+      document.documentElement.style.overscrollBehavior = previousHtmlOverscroll;
       document.body.style.overflow = previousBodyOverflow;
+      document.body.style.overscrollBehavior = previousBodyOverscroll;
       document.body.style.position = previousBodyPosition;
       document.body.style.top = previousBodyTop;
       document.body.style.width = previousBodyWidth;
+      document.body.style.touchAction = previousBodyTouchAction;
       window.scrollTo(0, scrollY);
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isCategoryOpen) {
+      return;
+    }
+
+    function updateDropdownPosition() {
+      const inputWrapper = categoryFieldRef.current;
+
+      if (!inputWrapper) {
+        return;
+      }
+
+      const rect = inputWrapper.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const estimatedHeight = 260;
+      const openUpwards = rect.bottom + estimatedHeight > viewportHeight - 12 && rect.top > estimatedHeight;
+
+      setCategoryDropdownStyle({
+        left: rect.left,
+        top: openUpwards ? rect.top - 8 : rect.bottom + 8,
+        width: rect.width,
+        transform: openUpwards ? "translateY(-100%)" : undefined,
+      });
+    }
+
+    function handlePointerDown(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node;
+
+      if (categoryFieldRef.current?.contains(target) || categoryDropdownRef.current?.contains(target)) {
+        return;
+      }
+
+      setIsCategoryOpen(false);
+      setNewCategoryError(null);
+
+      if (formData.category) {
+        setCategoryQuery(formData.category);
+      }
+    }
+
+    updateDropdownPosition();
+
+    window.addEventListener("resize", updateDropdownPosition);
+    window.addEventListener("scroll", updateDropdownPosition, true);
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+
+    return () => {
+      window.removeEventListener("resize", updateDropdownPosition);
+      window.removeEventListener("scroll", updateDropdownPosition, true);
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, [formData.category, isCategoryOpen]);
 
   if (!isOpen) {
     return null;
@@ -237,7 +305,7 @@ export function NewTransactionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 p-2 backdrop-blur-sm sm:items-center sm:px-4 sm:py-8">
-      <div className="flex max-h-[100dvh] w-full max-w-2xl min-w-0 flex-col overflow-visible rounded-[24px] border border-white/70 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.20)] sm:max-h-[88vh] sm:rounded-[28px]">
+      <div className="flex max-h-[100dvh] w-full max-w-2xl min-w-0 flex-col overflow-hidden rounded-[24px] border border-white/70 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.20)] sm:max-h-[88vh] sm:rounded-[28px]">
         <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:gap-4 sm:px-8 sm:py-6">
           <div className="min-w-0 flex-1">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -267,9 +335,10 @@ export function NewTransactionModal({
         </div>
 
         <form
-          className="flex-1 overflow-y-auto overflow-x-visible px-4 py-4 sm:px-8 sm:py-6"
+          className="flex-1 overflow-y-auto px-4 py-4 sm:px-8 sm:py-6"
           onSubmit={handleSubmit}
-          style={{ scrollbarGutter: "stable" }}
+          onPointerDown={(event) => event.stopPropagation()}
+          style={{ overscrollBehavior: "contain", scrollbarGutter: "stable" }}
         >
           {submitError ? (
             <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -329,18 +398,9 @@ export function NewTransactionModal({
             <div className="min-w-0">
               <span className="mb-2 block text-sm font-medium text-slate-700">Categoria</span>
               <div
-                className="relative z-20"
+                ref={categoryFieldRef}
+                className="relative"
                 onFocus={() => setIsCategoryOpen(true)}
-                onBlur={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-                    setIsCategoryOpen(false);
-                    setNewCategoryError(null);
-
-                    if (formData.category) {
-                      setCategoryQuery(formData.category);
-                    }
-                  }
-                }}
               >
                 <input
                   value={categoryQuery}
@@ -365,53 +425,6 @@ export function NewTransactionModal({
                 <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
                   ▾
                 </span>
-
-                {isCategoryOpen ? (
-                  <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_16px_45px_rgba(15,23,42,0.12)]">
-                    <div className="max-h-60 overflow-y-auto p-2">
-                      {filteredCategories.length > 0 ? (
-                        filteredCategories.map((category) => (
-                          <button
-                            key={category}
-                            type="button"
-                            onMouseDown={(event) => event.preventDefault()}
-                            onClick={() => {
-                              setCategoryQuery(category);
-                              updateField("category", category);
-                              setIsCategoryOpen(false);
-                              setNewCategoryError(null);
-                            }}
-                            className={`flex w-full items-center justify-between rounded-2xl px-3 py-3 text-left text-sm transition ${
-                              formData.category === category
-                                ? "bg-slate-900 text-white"
-                                : "text-slate-700 hover:bg-slate-50 hover:text-slate-950"
-                            }`}
-                          >
-                            <span>{category}</span>
-                            {formData.category === category ? <span className="text-xs">Selecionada</span> : null}
-                          </button>
-                        ))
-                      ) : (
-                        <div className="px-3 py-3 text-sm text-slate-500">Nenhuma categoria encontrada.</div>
-                      )}
-
-                      {onCreateCategory && normalizedCategoryQuery && !exactCategoryMatch ? (
-                        <button
-                          type="button"
-                          onMouseDown={(event) => event.preventDefault()}
-                          onClick={() => void handleCreateCategory()}
-                          disabled={isCreatingCategory}
-                          className="mt-2 flex w-full items-center justify-between rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-left text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          <span>Criar categoria &quot;{categoryQuery.trim()}&quot;</span>
-                          <span className="text-xs text-slate-500">
-                            {isCreatingCategory ? "Salvando..." : "Nova"}
-                          </span>
-                        </button>
-                      ) : null}
-                    </div>
-                  </div>
-                ) : null}
               </div>
 
               {errors.category ? (
@@ -484,6 +497,58 @@ export function NewTransactionModal({
           </div>
         </form>
       </div>
+
+      {isCategoryOpen
+        ? createPortal(
+            <div
+              ref={categoryDropdownRef}
+              className="fixed z-[60] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_16px_45px_rgba(15,23,42,0.12)]"
+              style={categoryDropdownStyle}
+            >
+              <div className="max-h-60 overflow-y-auto p-2">
+                {filteredCategories.length > 0 ? (
+                  filteredCategories.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => {
+                        setCategoryQuery(category);
+                        updateField("category", category);
+                        setIsCategoryOpen(false);
+                        setNewCategoryError(null);
+                      }}
+                      className={`flex w-full items-center justify-between rounded-2xl px-3 py-3 text-left text-sm transition ${
+                        formData.category === category
+                          ? "bg-slate-900 text-white"
+                          : "text-slate-700 hover:bg-slate-50 hover:text-slate-950"
+                      }`}
+                    >
+                      <span>{category}</span>
+                      {formData.category === category ? <span className="text-xs">Selecionada</span> : null}
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-3 py-3 text-sm text-slate-500">Nenhuma categoria encontrada.</div>
+                )}
+
+                {onCreateCategory && normalizedCategoryQuery && !exactCategoryMatch ? (
+                  <button
+                    type="button"
+                    onClick={() => void handleCreateCategory()}
+                    disabled={isCreatingCategory}
+                    className="mt-2 flex w-full items-center justify-between rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-left text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <span>Criar categoria &quot;{categoryQuery.trim()}&quot;</span>
+                    <span className="text-xs text-slate-500">
+                      {isCreatingCategory ? "Salvando..." : "Nova"}
+                    </span>
+                  </button>
+                ) : null}
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

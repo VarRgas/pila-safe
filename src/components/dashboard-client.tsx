@@ -153,31 +153,17 @@ export function DashboardClient({
       <main className="bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.14),_transparent_42%),linear-gradient(180deg,_#f8fafc_0%,_#eef4ff_100%)] px-4 py-5 pb-24 text-slate-900 sm:px-6 sm:py-6 sm:pb-6 lg:px-8">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
           <header className="rounded-3xl border border-white/70 bg-white/80 px-5 py-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur sm:px-6 md:px-8">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <div>
-                <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
-                  PilaSafe
-                </span>
-                <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl md:text-4xl">
-                  Dashboard financeiro
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 md:text-base">
-                  Uma visão rápida da sua saúde financeira, com indicadores e movimentações mais
-                  recentes em um só lugar.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setTransactionError(null);
-                  setToast(null);
-                  setIsModalOpen(true);
-                }}
-                className="hidden min-h-12 items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-sm xl:inline-flex"
-              >
-                Novo lançamento
-              </button>
+            <div>
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                PilaSafe
+              </span>
+              <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl md:text-4xl">
+                Dashboard financeiro
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 md:text-base">
+                Uma visão rápida da sua saúde financeira, com indicadores e movimentações mais
+                recentes em um só lugar.
+              </p>
             </div>
           </header>
 
@@ -238,9 +224,11 @@ export function DashboardClient({
             ))}
           </section>
 
-          <section className="grid gap-6 xl:grid-cols-[0.95fr_1.35fr]">
-            <RecentTransactions transactions={recentTransactions} />
+          <section className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
             <ChartSection charts={secondaryCharts} />
+            <div className="hidden xl:block">
+              <RecentTransactions transactions={recentTransactions} />
+            </div>
           </section>
 
           <section className="grid gap-4">
@@ -253,6 +241,10 @@ export function DashboardClient({
               </h2>
             </div>
             <ChartSection charts={primaryCharts} />
+          </section>
+
+          <section className="xl:hidden">
+            <RecentTransactions transactions={recentTransactions} />
           </section>
         </div>
       </main>

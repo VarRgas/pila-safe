@@ -41,7 +41,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   return (
     <>
-      <AppHeader userEmail={user.email ?? null} />
+      <AppHeader
+        userEmail={user.email ?? null}
+        userName={(user.user_metadata?.name as string | undefined) ?? null}
+      />
       <DashboardClient
         availableMonths={availableMonths}
         categoriesByType={categoriesByType}

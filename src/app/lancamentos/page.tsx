@@ -23,7 +23,10 @@ export default async function TransactionsPage() {
 
   return (
     <>
-      <AppHeader userEmail={user.email ?? null} />
+      <AppHeader
+        userEmail={user.email ?? null}
+        userName={(user.user_metadata?.name as string | undefined) ?? null}
+      />
       <TransactionsPageClient
         categoriesByType={categoriesByType}
         initialTransactions={mapTransactionsToItems(transactions)}
