@@ -31,6 +31,8 @@ export function SummaryCard({ card, index }: SummaryCardProps) {
   const tone = toneClasses[card.tone];
   const isBalanceCard = card.title === "Saldo";
   const { hideValues } = useUi();
+  const isNegativeBalance = isBalanceCard && card.amount.includes("-");
+  const isZeroBalance = isBalanceCard && /R\$\s?0([,.]0+)?/.test(card.amount);
 
   return (
     <article
@@ -47,8 +49,10 @@ export function SummaryCard({ card, index }: SummaryCardProps) {
             {card.title}
           </p>
           <strong
-            className={`mt-2 block text-lg font-semibold tracking-tight text-slate-950 sm:mt-3 sm:text-2xl ${
-              isBalanceCard ? "sm:whitespace-nowrap" : ""
+            className={`mt-2 block text-lg font-semibold tracking-tight sm:mt-3 sm:text-2xl ${
+              isBalanceCard
+                ? `${isNegativeBalance ? "text-rose-700" : isZeroBalance ? "text-slate-950" : "text-emerald-700"} sm:whitespace-nowrap`
+                : "text-slate-950"
             }`}
           >
             {maskFinancialValue(card.amount, hideValues)}

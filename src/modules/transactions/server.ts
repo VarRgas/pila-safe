@@ -67,14 +67,12 @@ function parseCurrencyToDecimalString(value: string) {
 }
 
 function formatCurrency(amount: string, type: TransactionItem["type"]) {
-  const signal = type === "RECEITA" ? "+" : "-";
-
-  return `${signal}${Number(amount).toLocaleString("pt-BR", {
+  return Number(amount).toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })}`;
+  });
 }
 
 function formatAbsoluteCurrency(amount: number) {
