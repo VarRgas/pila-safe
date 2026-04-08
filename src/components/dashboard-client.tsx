@@ -8,6 +8,7 @@ import { FeedbackToast } from "@/components/feedback-toast";
 import { NewTransactionModal } from "@/components/new-transaction-modal";
 import { RecentTransactions } from "@/components/recent-transactions";
 import { SummaryCard } from "@/components/summary-card";
+import { UiSelect } from "@/components/ui-select";
 import { supabase } from "@/shared/lib/supabase";
 import type {
   CategoryOptionsByType,
@@ -172,21 +173,12 @@ export function DashboardClient({
               <div className="rounded-3xl border border-white/70 bg-white/80 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.05)] xl:px-5 xl:py-4">
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                   <div className="grid gap-3 xl:grid-cols-[2fr_1fr_1fr] xl:flex-1 xl:items-center xl:gap-4">
-                    <label className="w-full min-w-0">
-                      <span className="mb-2 block text-sm font-medium text-slate-700">Mês do resumo</span>
-                      <select
-                        value={selectedMonth}
-                        onChange={(event) => handleMonthChange(event.target.value)}
-                        className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition hover:border-slate-300 focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-                      >
-                        <option value="">Todos os meses</option>
-                        {availableMonths.map((month) => (
-                          <option key={month.value} value={month.value}>
-                            {month.label}
-                        </option>
-                      ))}
-                    </select>
-                    </label>
+                    <UiSelect
+                      label="Mês do resumo"
+                      options={[{ label: "Todos os meses", value: "" }, ...availableMonths]}
+                      value={selectedMonth}
+                      onChange={handleMonthChange}
+                    />
 
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                       <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500 sm:text-xs">

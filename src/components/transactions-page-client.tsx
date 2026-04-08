@@ -12,6 +12,7 @@ import {
 import { FeedbackToast } from "@/components/feedback-toast";
 import { NewTransactionModal } from "@/components/new-transaction-modal";
 import { TransactionsTable } from "@/components/transactions-table";
+import { UiSelect } from "@/components/ui-select";
 import { supabase } from "@/shared/lib/supabase";
 import type { CategoryOptionsByType, NewTransactionFormData, TransactionItem } from "@/shared/types/dashboard";
 
@@ -278,35 +279,24 @@ export function TransactionsPageClient({
                 />
               </label>
 
-              <label>
-                <span className="mb-2 block text-sm font-medium text-slate-700">Mês</span>
-                <select
-                  value={selectedMonth}
-                  onChange={(event) => setSelectedMonth(event.target.value)}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition hover:border-slate-300 focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-                >
-                  <option value="">Todos os meses</option>
-                  {availableMonths.map((month) => (
-                    <option key={month.value} value={month.value}>
-                      {month.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <UiSelect
+                label="Mês"
+                options={[{ label: "Todos os meses", value: "" }, ...availableMonths]}
+                value={selectedMonth}
+                onChange={setSelectedMonth}
+              />
 
-              <label>
-                <span className="mb-2 block text-sm font-medium text-slate-700">Ordenar por</span>
-                <select
-                  value={sortBy}
-                  onChange={(event) => setSortBy(event.target.value as SortOption)}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition hover:border-slate-300 focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-                >
-                  <option value="date-desc">Data mais recente</option>
-                  <option value="date-asc">Data mais antiga</option>
-                  <option value="amount-desc">Maior valor</option>
-                  <option value="amount-asc">Menor valor</option>
-                </select>
-              </label>
+              <UiSelect
+                label="Ordenar por"
+                options={[
+                  { label: "Data mais recente", value: "date-desc" },
+                  { label: "Data mais antiga", value: "date-asc" },
+                  { label: "Maior valor", value: "amount-desc" },
+                  { label: "Menor valor", value: "amount-asc" },
+                ]}
+                value={sortBy}
+                onChange={(value) => setSortBy(value as SortOption)}
+              />
             </div>
 
             <div className="mt-4 text-sm text-slate-500">
