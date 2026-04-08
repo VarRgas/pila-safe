@@ -1,4 +1,7 @@
+"use client";
+
 import type { TransactionItem } from "@/shared/types/dashboard";
+import { maskFinancialValue, useUi } from "@/shared/lib/ui-context";
 
 type TransactionsTableProps = {
   transactions: TransactionItem[];
@@ -20,6 +23,7 @@ export function TransactionsTable({
   pendingDeleteId = null,
 }: TransactionsTableProps) {
   const hasActions = Boolean(onEdit || onDelete);
+  const { hideValues } = useUi();
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -39,7 +43,7 @@ export function TransactionsTable({
         {transactions.map((transaction) => (
           <article
             key={transaction.id}
-            className={`grid gap-3 px-4 py-4 transition hover:bg-slate-50 md:items-center md:gap-4 ${
+            className={`grid gap-3 px-4 py-4 transition hover:bg-slate-50 md:items-start md:gap-4 ${
               hasActions ? "md:grid-cols-[1.5fr_1fr_0.9fr_1fr_0.9fr]" : "md:grid-cols-[1.5fr_1fr_0.9fr_1fr]"
             }`}
           >
@@ -52,21 +56,17 @@ export function TransactionsTable({
                   {transaction.type}
                 </span>
               </div>
-              <div className="mt-3 grid gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-3 text-sm md:hidden">
-                <p className="flex items-center justify-between gap-4 text-slate-500">
-                  <span className="font-medium text-slate-400">Categoria</span>
-                  <span className="max-w-[60%] text-right text-slate-600">{transaction.category}</span>
-                </p>
-                <p className="flex items-center justify-between gap-4 text-slate-500">
-                  <span className="font-medium text-slate-400">Data</span>
-                  <span className="text-right text-slate-600">{transaction.date}</span>
-                </p>
-                <p className="flex items-center justify-between gap-4">
-                  <span className="font-medium text-slate-400">Valor</span>
-                  <strong className="text-right text-slate-900">{transaction.amount}</strong>
-                </p>
+              <div className="mt-2 grid gap-2 text-sm md:hidden">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
+                  <span className="font-medium text-slate-600">{transaction.category}</span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-500">{transaction.date}</span>
+                </div>
+                <strong className="text-lg font-semibold tracking-tight text-slate-950">
+                  {maskFinancialValue(transaction.amount, hideValues)}
+                </strong>
                 {hasActions ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-wrap gap-2">
                     {onEdit ? (
                       <button
                         type="button"
@@ -108,13 +108,13 @@ export function TransactionsTable({
               </div>
             </div>
 
-            <span className="hidden text-sm text-slate-600 md:block">{transaction.category}</span>
-            <span className="text-sm text-slate-500">{transaction.date}</span>
-            <strong className="text-sm font-semibold text-slate-900 md:text-right">
-              {transaction.amount}
+            <span className="hidden pt-1 text-sm leading-6 text-slate-600 md:block">{transaction.category}</span>
+            <span className="text-sm text-slate-500 md:pt-1 md:leading-6">{transaction.date}</span>
+            <strong className="text-sm font-semibold text-slate-900 md:pt-1 md:text-right md:leading-6">
+              {maskFinancialValue(transaction.amount, hideValues)}
             </strong>
             {hasActions ? (
-              <div className="hidden justify-end gap-2 md:flex">
+              <div className="hidden justify-end gap-2 md:flex md:pt-1">
                 {onEdit ? (
                   <button
                     type="button"

@@ -241,11 +241,11 @@ export function ChartSection({ charts }: ChartSectionProps) {
                           .join(", ")})`,
                       }}
                     />
-                    <div className="absolute inset-7 flex flex-col items-center justify-center rounded-full bg-white text-center shadow-inner">
-                      <span className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                    <div className="absolute inset-6 flex flex-col items-center justify-center rounded-full bg-white px-2 text-center shadow-inner">
+                      <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">
                         {chart.totalLabel}
                       </span>
-                      <strong className="mt-2 text-lg font-semibold tracking-tight text-slate-950">
+                      <strong className="mt-2 whitespace-nowrap text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
                         {chart.totalValue}
                       </strong>
                     </div>

@@ -5,6 +5,7 @@ import { useMemo, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { UserMenu } from "@/components/user-menu";
 import { supabase } from "@/shared/lib/supabase";
+import { useUi } from "@/shared/lib/ui-context";
 
 type AppHeaderProps = {
   userEmail: string | null;
@@ -20,6 +21,7 @@ export function AppHeader({ userEmail, userName }: AppHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
+  const { hideValues, theme, toggleHideValues, toggleTheme } = useUi();
 
   const compactUserLabel = useMemo(() => {
     if (userName?.trim()) {
@@ -87,11 +89,83 @@ export function AppHeader({ userEmail, userName }: AppHeaderProps) {
           </nav>
         </div>
 
-        <div className="hidden md:flex md:justify-end">
+        <div className="hidden items-center gap-2 md:flex md:justify-end">
+          <button
+            type="button"
+            onClick={toggleHideValues}
+            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-950"
+            aria-label={hideValues ? "Mostrar valores" : "Ocultar valores"}
+            title={hideValues ? "Mostrar valores" : "Ocultar valores"}
+          >
+            {hideValues ? (
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.6 10.7A3 3 0 0 0 14 14" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.9 5.1A9.9 9.9 0 0 1 12 5c5 0 9 4.5 9 7s-1.3 3.6-3.3 5.1" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.7 6.7C4.7 8.2 3 10.3 3 12c0 2.5 4 7 9 7 1.7 0 3.2-.4 4.6-1.1" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-950"
+            aria-label={theme === "light" ? "Ativar modo escuro" : "Ativar modo claro"}
+            title={theme === "light" ? "Ativar modo escuro" : "Ativar modo claro"}
+          >
+            {theme === "light" ? (
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <circle cx="12" cy="12" r="4" />
+                <path strokeLinecap="round" d="M12 2v2.5M12 19.5V22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M2 12h2.5M19.5 12H22M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" />
+              </svg>
+            )}
+          </button>
+
           <UserMenu userEmail={userEmail} userName={userName} onLogout={handleLogout} />
         </div>
 
-        <details ref={mobileMenuRef} className="relative md:hidden">
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={toggleHideValues}
+            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-950"
+            aria-label={hideValues ? "Mostrar valores" : "Ocultar valores"}
+          >
+            {hideValues ? (
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.6 10.7A3 3 0 0 0 14 14" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.9 5.1A9.9 9.9 0 0 1 12 5c5 0 9 4.5 9 7s-1.3 3.6-3.3 5.1" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.7 6.7C4.7 8.2 3 10.3 3 12c0 2.5 4 7 9 7 1.7 0 3.2-.4 4.6-1.1" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-950"
+            aria-label={theme === "light" ? "Ativar modo escuro" : "Ativar modo claro"}
+          >
+            {theme === "light" ? "☾" : "☀"}
+          </button>
+
+          <details ref={mobileMenuRef} className="relative">
           <summary className="flex h-11 w-11 list-none items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition marker:content-none hover:border-slate-300 hover:text-slate-950">
             <span className="text-lg">≡</span>
           </summary>
@@ -151,7 +225,8 @@ export function AppHeader({ userEmail, userName }: AppHeaderProps) {
               </button>
             </div>
           </div>
-        </details>
+          </details>
+        </div>
       </div>
     </header>
   );

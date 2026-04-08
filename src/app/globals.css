@@ -5,6 +5,11 @@
   --foreground: #0f172a;
 }
 
+html[data-theme="dark"] {
+  --background: #020617;
+  --foreground: #e2e8f0;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -25,6 +30,50 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
+}
+
+.app-page-shell {
+  background:
+    radial-gradient(circle at top, rgba(148, 163, 184, 0.14), transparent 42%),
+    linear-gradient(180deg, #f8fafc 0%, #eef4ff 100%);
+}
+
+html[data-theme="dark"] .app-page-shell {
+  background:
+    radial-gradient(circle at top, rgba(30, 41, 59, 0.45), transparent 42%),
+    linear-gradient(180deg, #020617 0%, #0f172a 100%);
+}
+
+html[data-theme="dark"] .text-slate-950,
+html[data-theme="dark"] .text-slate-900 {
+  color: #e2e8f0 !important;
+}
+
+html[data-theme="dark"] .text-slate-700,
+html[data-theme="dark"] .text-slate-600,
+html[data-theme="dark"] .text-slate-500,
+html[data-theme="dark"] .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .bg-white\/80,
+html[data-theme="dark"] .bg-white\/85,
+html[data-theme="dark"] .bg-white\/92 {
+  background-color: rgba(15, 23, 42, 0.92) !important;
+}
+
+html[data-theme="dark"] .bg-slate-50,
+html[data-theme="dark"] .bg-slate-100 {
+  background-color: #111827 !important;
+}
+
+html[data-theme="dark"] .border-slate-200,
+html[data-theme="dark"] .border-slate-100,
+html[data-theme="dark"] .border-white\/70,
+html[data-theme="dark"] .border-slate-200\/80,
+html[data-theme="dark"] .divide-slate-200 {
+  border-color: rgba(51, 65, 85, 0.95) !important;
 }
 
 button {

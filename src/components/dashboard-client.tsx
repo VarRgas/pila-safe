@@ -150,7 +150,7 @@ export function DashboardClient({
 
   return (
     <>
-      <main className="bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.14),_transparent_42%),linear-gradient(180deg,_#f8fafc_0%,_#eef4ff_100%)] px-4 py-5 pb-24 text-slate-900 sm:px-6 sm:py-6 sm:pb-6 lg:px-8">
+      <main className="app-page-shell px-4 py-5 pb-24 text-slate-900 sm:px-6 sm:py-6 sm:pb-6 lg:px-8">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
           <header className="rounded-3xl border border-white/70 bg-white/80 px-5 py-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur sm:px-6 md:px-8">
             <div>
@@ -171,8 +171,8 @@ export function DashboardClient({
             <div className="col-span-2 xl:col-span-4">
               <div className="rounded-3xl border border-white/70 bg-white/80 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.05)] xl:px-5 xl:py-4">
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                <div className="grid gap-3 xl:grid-cols-[2fr_1fr_1fr] xl:items-center xl:gap-4 xl:flex-1">
-                  <label className="w-full min-w-0">
+                  <div className="grid gap-3 xl:grid-cols-[2fr_1fr_1fr] xl:flex-1 xl:items-center xl:gap-4">
+                    <label className="w-full min-w-0">
                       <span className="mb-2 block text-sm font-medium text-slate-700">Mês do resumo</span>
                       <select
                         value={selectedMonth}
@@ -183,9 +183,9 @@ export function DashboardClient({
                         {availableMonths.map((month) => (
                           <option key={month.value} value={month.value}>
                             {month.label}
-                          </option>
-                        ))}
-                      </select>
+                        </option>
+                      ))}
+                    </select>
                     </label>
 
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -232,14 +232,6 @@ export function DashboardClient({
           </section>
 
           <section className="grid gap-4">
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Evolução mensal
-              </span>
-              <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
-                Comparativo mês a mês
-              </h2>
-            </div>
             <ChartSection charts={primaryCharts} />
           </section>
 

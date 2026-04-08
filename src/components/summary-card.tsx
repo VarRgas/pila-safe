@@ -1,4 +1,7 @@
+"use client";
+
 import type { SummaryCardData } from "@/shared/types/dashboard";
+import { maskFinancialValue, useUi } from "@/shared/lib/ui-context";
 
 const toneClasses = {
   success: {
@@ -27,6 +30,7 @@ type SummaryCardProps = {
 export function SummaryCard({ card, index }: SummaryCardProps) {
   const tone = toneClasses[card.tone];
   const isBalanceCard = card.title === "Saldo";
+  const { hideValues } = useUi();
 
   return (
     <article
@@ -47,7 +51,7 @@ export function SummaryCard({ card, index }: SummaryCardProps) {
               isBalanceCard ? "sm:whitespace-nowrap" : ""
             }`}
           >
-            {card.amount}
+            {maskFinancialValue(card.amount, hideValues)}
           </strong>
           {isBalanceCard ? (
             <span
