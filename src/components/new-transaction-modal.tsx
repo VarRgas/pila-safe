@@ -316,11 +316,6 @@ export function NewTransactionModal({
             <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
               {isEditMode ? "Atualizar movimentação financeira" : "Adicionar movimentação financeira"}
             </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              {isEditMode
-                ? "Revise os campos e salve as alterações deste lançamento."
-                : "Preencha os campos para inserir um novo item na sua listagem."}
-            </p>
           </div>
 
           <button
@@ -404,6 +399,20 @@ export function NewTransactionModal({
                 className="relative"
                 onFocus={() => setIsCategoryOpen(true)}
               >
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryOpen(true)}
+                  className={`flex h-12 w-full items-center justify-between rounded-2xl border px-4 pr-10 text-left text-base text-slate-900 shadow-sm outline-none transition focus:bg-white focus:ring-2 focus:ring-slate-300 sm:hidden ${
+                    errors.category
+                      ? "border-rose-300 bg-rose-50 hover:border-rose-400 focus:border-rose-400"
+                      : "border-slate-200 bg-white hover:border-slate-400 focus:border-slate-400"
+                  }`}
+                >
+                  <span className={`truncate ${formData.category ? "text-slate-900" : "text-slate-400"}`}>
+                    {formData.category || "Selecione ou busque uma categoria"}
+                  </span>
+                </button>
+
                 <input
                   value={categoryQuery}
                   onChange={(event) => {
@@ -419,7 +428,7 @@ export function NewTransactionModal({
                   }}
                   onFocus={() => setIsCategoryOpen(true)}
                   placeholder="Selecione ou busque uma categoria"
-                  className={`h-12 w-full rounded-2xl border px-4 pr-10 text-base text-slate-900 shadow-sm outline-none transition focus:bg-white focus:ring-2 focus:ring-slate-300 sm:text-sm ${
+                  className={`hidden h-12 w-full rounded-2xl border px-4 pr-10 text-base text-slate-900 shadow-sm outline-none transition focus:bg-white focus:ring-2 focus:ring-slate-300 sm:block sm:text-sm ${
                     errors.category
                       ? "border-rose-300 bg-rose-50 hover:border-rose-400 focus:border-rose-400"
                       : "border-slate-200 bg-white hover:border-slate-400 focus:border-slate-400"
@@ -508,6 +517,24 @@ export function NewTransactionModal({
               className="fixed z-[60] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_16px_45px_rgba(15,23,42,0.12)]"
               style={categoryDropdownStyle}
             >
+              <div className="border-b border-slate-100 p-3">
+                <input
+                  value={categoryQuery}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    const exactMatch = currentCategories.find(
+                      (category) => category.toLowerCase() === nextValue.trim().toLowerCase(),
+                    );
+
+                    setCategoryQuery(nextValue);
+                    setNewCategoryError(null);
+                    updateField("category", exactMatch ?? "");
+                  }}
+                  placeholder="Buscar ou criar categoria"
+                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-900 shadow-sm outline-none transition hover:border-slate-300 focus:border-slate-400 focus:ring-2 focus:ring-slate-200 sm:text-sm"
+                />
+              </div>
+
               <div className="max-h-60 overflow-y-auto p-2">
                 {filteredCategories.length > 0 ? (
                   filteredCategories.map((category) => (
