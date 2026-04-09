@@ -144,7 +144,9 @@ export function NewTransactionModal({
       const rect = inputWrapper.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
       const estimatedHeight = 260;
-      const openUpwards = rect.bottom + estimatedHeight > viewportHeight - 12 && rect.top > estimatedHeight;
+      const isMobileViewport = window.innerWidth < 640;
+      const openUpwards =
+        !isMobileViewport && rect.bottom + estimatedHeight > viewportHeight - 12 && rect.top > estimatedHeight;
 
       setCategoryDropdownStyle({
         left: rect.left,
