@@ -304,8 +304,8 @@ export function NewTransactionModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 p-2 backdrop-blur-sm sm:items-center sm:px-4 sm:py-8">
-      <div className="flex max-h-[100dvh] w-full max-w-2xl min-w-0 flex-col overflow-hidden rounded-[24px] border border-white/70 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.20)] sm:max-h-[88vh] sm:rounded-[28px]">
+    <div className="fixed inset-0 z-50 flex touch-pan-y items-end justify-center overflow-x-hidden bg-slate-950/45 p-2 backdrop-blur-sm sm:items-center sm:px-4 sm:py-8">
+      <div className="flex max-h-[100dvh] w-full max-w-2xl min-w-0 touch-pan-y flex-col overflow-hidden rounded-[24px] border border-white/70 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.20)] sm:max-h-[88vh] sm:rounded-[28px]">
         <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:gap-4 sm:px-8 sm:py-6">
           <div className="min-w-0 flex-1">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -335,7 +335,7 @@ export function NewTransactionModal({
         </div>
 
         <form
-          className="flex-1 overflow-y-auto px-4 py-4 sm:px-8 sm:py-6"
+          className="flex-1 touch-pan-y overflow-x-hidden overflow-y-auto px-4 py-4 sm:px-8 sm:py-6"
           onSubmit={handleSubmit}
           onPointerDown={(event) => event.stopPropagation()}
           style={{ overscrollBehavior: "contain", scrollbarGutter: "stable" }}
@@ -415,8 +415,9 @@ export function NewTransactionModal({
                     setIsCategoryOpen(true);
                     updateField("category", exactMatch ?? "");
                   }}
+                  onFocus={() => setIsCategoryOpen(true)}
                   placeholder="Selecione ou busque uma categoria"
-                  className={`h-12 w-full rounded-2xl border px-4 pr-10 text-sm text-slate-900 shadow-sm outline-none transition focus:bg-white focus:ring-2 focus:ring-slate-300 ${
+                  className={`h-12 w-full rounded-2xl border px-4 pr-10 text-base text-slate-900 shadow-sm outline-none transition focus:bg-white focus:ring-2 focus:ring-slate-300 sm:text-sm ${
                     errors.category
                       ? "border-rose-300 bg-rose-50 hover:border-rose-400 focus:border-rose-400"
                       : "border-slate-200 bg-white hover:border-slate-400 focus:border-slate-400"
