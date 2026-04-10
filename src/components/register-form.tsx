@@ -197,7 +197,7 @@ export function RegisterForm() {
 
           <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <div className="flex items-center justify-between gap-4">
-              <span className="text-sm font-medium text-slate-600">Forca da senha</span>
+              <span className="text-sm font-medium text-slate-600">Força da senha</span>
               <span className={`text-sm font-semibold ${passwordStrength.text}`}>
                 {formData.password ? passwordStrength.label : "Preencha para avaliar"}
               </span>

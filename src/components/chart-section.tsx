@@ -77,7 +77,7 @@ export function ChartSection({ charts }: ChartSectionProps) {
                 <div className="mt-6 overflow-x-auto">
                   <div className="min-w-[400px] rounded-2xl border border-slate-200 bg-slate-50 p-2.5 sm:min-w-[560px] sm:p-4">
                     <div
-                      className="grid h-48 gap-x-2 sm:h-72 sm:gap-x-4"
+                      className="grid h-48 gap-x-3 sm:h-72 sm:gap-x-5"
                       style={{
                         gridTemplateColumns: `40px repeat(${chart.labels.length}, minmax(0, 1fr))`,
                       }}
@@ -99,8 +99,11 @@ export function ChartSection({ charts }: ChartSectionProps) {
                       </div>
 
                       {chart.labels.map((label, monthIndex) => (
-                        <div key={label} className="grid grid-rows-[1fr_auto_auto] gap-2 min-w-0 sm:gap-3">
-                          <div className="relative flex h-full items-end justify-center gap-1 border-b border-slate-200 sm:gap-2">
+                        <div
+                          key={label}
+                          className="grid min-w-0 grid-rows-[1fr_auto_auto] gap-2 rounded-2xl px-2 py-2 sm:gap-3 sm:px-3"
+                        >
+                          <div className="relative flex h-full items-end justify-center gap-1.5 border-b border-slate-200 sm:gap-2">
                             {[0, 25, 50, 75, 100].map((tick) => (
                               <div
                                 key={tick}
@@ -114,9 +117,12 @@ export function ChartSection({ charts }: ChartSectionProps) {
                               const height = maxValue === 0 ? 0 : Math.max(4, (value / maxValue) * 100);
 
                               return (
-                                <div key={serie.label} className="relative z-10 flex h-full flex-1 items-end justify-center">
+                                <div
+                                  key={serie.label}
+                                  className="relative z-10 flex h-full w-4 items-end justify-center sm:w-5"
+                                >
                                   <div
-                                    className={`w-2.5 rounded-t-md sm:w-5 ${timelineToneClasses[serie.tone]}`}
+                                    className={`w-full rounded-t-md ${timelineToneClasses[serie.tone]}`}
                                     style={{ height: `${height}%` }}
                                   />
                                 </div>
