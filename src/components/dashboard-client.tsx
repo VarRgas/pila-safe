@@ -216,18 +216,13 @@ export function DashboardClient({
             ))}
           </section>
 
-          <section className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
-            <ChartSection charts={secondaryCharts} />
-            <div className="hidden xl:block">
-              <RecentTransactions transactions={recentTransactions} />
-            </div>
-          </section>
+          <ChartSection charts={secondaryCharts} className="xl:grid-cols-2" />
 
           <section className="grid gap-4">
             <ChartSection charts={primaryCharts} />
           </section>
 
-          <section className="xl:hidden">
+          <section>
             <RecentTransactions transactions={recentTransactions} />
           </section>
         </div>

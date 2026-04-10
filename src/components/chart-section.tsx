@@ -5,6 +5,7 @@ import { maskFinancialValue, useUi } from "@/shared/lib/ui-context";
 
 type ChartSectionProps = {
   charts: ChartCardData[];
+  className?: string;
 };
 
 const comparisonToneClasses = {
@@ -38,11 +39,11 @@ function normalizeWidths(values: number[]) {
   return values.map((value) => Math.max(8, Math.round((value / maxValue) * 100)));
 }
 
-export function ChartSection({ charts }: ChartSectionProps) {
+export function ChartSection({ charts, className = "" }: ChartSectionProps) {
   const { hideValues } = useUi();
 
   return (
-    <section className="grid gap-6">
+    <section className={`grid gap-6 ${className}`.trim()}>
       {charts.map((chart) => {
         if (chart.kind === "timeline") {
           const allValues = chart.series.flatMap((serie) => serie.values);
