@@ -1,4 +1,7 @@
+"use client";
+
 import type { ChartCardData } from "@/shared/types/dashboard";
+import { maskFinancialValue, useUi } from "@/shared/lib/ui-context";
 
 type ChartSectionProps = {
   charts: ChartCardData[];
@@ -36,6 +39,8 @@ function normalizeWidths(values: number[]) {
 }
 
 export function ChartSection({ charts }: ChartSectionProps) {
+  const { hideValues } = useUi();
+
   return (
     <section className="grid gap-6">
       {charts.map((chart) => {
@@ -85,7 +90,9 @@ export function ChartSection({ charts }: ChartSectionProps) {
                             style={{ bottom: `${tick}%` }}
                           >
                             <span className="text-[9px] text-slate-400 sm:text-[10px]">
-                              {Math.round((maxValue * tick) / 100).toLocaleString("pt-BR")}
+                              {hideValues
+                                ? "••••"
+                                : Math.round((maxValue * tick) / 100).toLocaleString("pt-BR")}
                             </span>
                           </div>
                         ))}
@@ -129,7 +136,7 @@ export function ChartSection({ charts }: ChartSectionProps) {
                                       : "text-sky-700"
                                 }`}
                               >
-                                {serie.formatted[monthIndex]}
+                                {maskFinancialValue(serie.formatted[monthIndex], hideValues)}
                               </span>
                             ))}
                           </div>
@@ -180,7 +187,7 @@ export function ChartSection({ charts }: ChartSectionProps) {
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-sm font-medium text-slate-600">{item.label}</span>
                           <span className={`rounded-full px-3 py-1 text-xs font-semibold ${toneClass.badge}`}>
-                            {item.formatted}
+                            {maskFinancialValue(item.formatted, hideValues)}
                           </span>
                         </div>
 
@@ -246,7 +253,7 @@ export function ChartSection({ charts }: ChartSectionProps) {
                         {chart.totalLabel}
                       </span>
                       <strong className="mt-2 whitespace-nowrap text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
-                        {chart.totalValue}
+                        {maskFinancialValue(chart.totalValue, hideValues)}
                       </strong>
                     </div>
                   </div>
@@ -268,7 +275,7 @@ export function ChartSection({ charts }: ChartSectionProps) {
                           </div>
                           <div className="text-right">
                             <strong className="block text-sm font-semibold text-slate-950">
-                              {item.formatted}
+                              {maskFinancialValue(item.formatted, hideValues)}
                             </strong>
                             <span className="text-xs text-slate-500">{percentage}% do total</span>
                           </div>

@@ -109,8 +109,8 @@ export function TransactionsTable({
             </div>
 
             <span className="hidden pt-1 text-sm leading-6 text-slate-600 md:block">{transaction.category}</span>
-            <span className="text-sm text-slate-500 md:pt-1 md:leading-6">{transaction.date}</span>
-            <strong className="text-sm font-semibold text-slate-900 md:pt-1 md:text-right md:leading-6">
+            <span className="hidden text-sm text-slate-500 md:block md:pt-1 md:leading-6">{transaction.date}</span>
+            <strong className="hidden text-sm font-semibold text-slate-900 md:block md:pt-1 md:text-right md:leading-6">
               {maskFinancialValue(transaction.amount, hideValues)}
             </strong>
             {hasActions ? (
