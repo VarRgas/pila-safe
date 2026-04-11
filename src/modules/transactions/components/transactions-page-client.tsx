@@ -8,10 +8,10 @@ import {
   createTransactionAction,
   deleteTransactionAction,
   updateTransactionAction,
-} from "@/app/actions/transactions";
+} from "@/modules/transactions/actions/transactions";
 import { FeedbackToast } from "@/components/feedback-toast";
-import { NewTransactionModal } from "@/components/new-transaction-modal";
-import { TransactionsTable } from "@/components/transactions-table";
+import { NewTransactionModal } from "@/modules/transactions/components/new-transaction-modal";
+import { TransactionsTable } from "@/modules/transactions/components/transactions-table";
 import { UiSelect } from "@/components/ui-select";
 import { supabase } from "@/shared/lib/supabase";
 import type { CategoryOptionsByType, NewTransactionFormData, TransactionItem } from "@/shared/types/dashboard";

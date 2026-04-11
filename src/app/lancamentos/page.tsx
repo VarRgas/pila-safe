@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { AppHeader } from "@/components/app-header";
-import { TransactionsPageClient } from "@/components/transactions-page-client";
+import { AppHeader } from "@/components/layout/app-header";
+import { TransactionsPageClient } from "@/modules/transactions/components/transactions-page-client";
 import {
   getCategoryOptionsByType,
   getTransactionsByUserId,

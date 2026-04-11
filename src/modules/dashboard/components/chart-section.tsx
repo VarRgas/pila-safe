@@ -39,6 +39,27 @@ function normalizeWidths(values: number[]) {
   return values.map((value) => Math.max(8, Math.round((value / maxValue) * 100)));
 }
 
+function renderCenterValue(value: string, hideValues: boolean) {
+  const maskedValue = maskFinancialValue(value, hideValues);
+
+  if (hideValues || !maskedValue.startsWith("R$")) {
+    return (
+      <strong className="mt-2 whitespace-nowrap text-base font-semibold tracking-tight text-slate-950 sm:text-lg md:text-base lg:text-lg xl:text-xl">
+        {maskedValue}
+      </strong>
+    );
+  }
+
+  return (
+    <div className="mt-2 flex flex-col items-center leading-none">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">R$</span>
+      <strong className="mt-1 whitespace-nowrap text-base font-semibold tracking-tight text-slate-950 sm:text-lg md:text-base lg:text-lg">
+        {maskedValue.replace("R$", "").trim()}
+      </strong>
+    </div>
+  );
+}
+
 export function ChartSection({ charts, className = "" }: ChartSectionProps) {
   const { hideValues } = useUi();
 
@@ -255,13 +276,11 @@ export function ChartSection({ charts, className = "" }: ChartSectionProps) {
                           .join(", ")})`,
                       }}
                     />
-                    <div className="absolute inset-6 flex flex-col items-center justify-center rounded-full bg-white px-2 text-center shadow-inner">
+                    <div className="absolute inset-6 flex flex-col items-center justify-center rounded-full bg-white px-4 text-center shadow-inner sm:inset-7">
                       <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">
                         {chart.totalLabel}
                       </span>
-                      <strong className="mt-2 whitespace-nowrap text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
-                        {maskFinancialValue(chart.totalValue, hideValues)}
-                      </strong>
+                      {renderCenterValue(chart.totalValue, hideValues)}
                     </div>
                   </div>
                 </div>

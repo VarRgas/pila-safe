@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createCategoryAction, createTransactionAction } from "@/app/actions/transactions";
-import { ChartSection } from "@/components/chart-section";
+import { createCategoryAction, createTransactionAction } from "@/modules/transactions/actions/transactions";
+import { ChartSection } from "@/modules/dashboard/components/chart-section";
 import { FeedbackToast } from "@/components/feedback-toast";
-import { NewTransactionModal } from "@/components/new-transaction-modal";
-import { RecentTransactions } from "@/components/recent-transactions";
-import { SummaryCard } from "@/components/summary-card";
+import { NewTransactionModal } from "@/modules/transactions/components/new-transaction-modal";
+import { RecentTransactions } from "@/modules/dashboard/components/recent-transactions";
+import { SummaryCard } from "@/modules/dashboard/components/summary-card";
 import { UiSelect } from "@/components/ui-select";
 import { supabase } from "@/shared/lib/supabase";
 import type {

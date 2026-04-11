@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { TransactionsTable } from "@/components/transactions-table";
+import { TransactionsTable } from "@/modules/transactions/components/transactions-table";
 import type { TransactionItem, TransactionType } from "@/shared/types/dashboard";
 
 type RecentTransactionsProps = {

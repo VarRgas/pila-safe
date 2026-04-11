@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthField } from "@/components/auth-field";
-import { AuthShell } from "@/components/auth-shell";
+import { AuthShell } from "@/modules/auth/components/auth-shell";
 import { supabase } from "@/shared/lib/supabase";
 
 type ResetPasswordFormData = {

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { UserMenu } from "@/components/user-menu";
+import { UserMenu } from "@/components/layout/user-menu";
 import { supabase } from "@/shared/lib/supabase";
 import { useUi } from "@/shared/lib/ui-context";
 

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { AppHeader } from "@/components/app-header";
-import { DashboardClient } from "@/components/dashboard-client";
+import { AppHeader } from "@/components/layout/app-header";
+import { DashboardClient } from "@/modules/dashboard/components/dashboard-client";
 import {
   buildChartCards,
   buildSummaryCards,

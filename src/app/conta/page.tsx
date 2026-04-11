@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AccountSecurityCard } from "@/components/account-security-card";
-import { AppHeader } from "@/components/app-header";
+import { AppHeader } from "@/components/layout/app-header";
+import { AccountSecurityCard } from "@/modules/auth/components/account-security-card";
 import { createSupabaseServerClient } from "@/shared/lib/supabase-server";
 
 export default async function AccountPage() {
