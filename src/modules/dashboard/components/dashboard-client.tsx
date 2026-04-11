@@ -25,6 +25,14 @@ type DashboardClientProps = {
   categoriesByType: CategoryOptionsByType;
   chartCards: ChartCardData[];
   initialTransactions: TransactionItem[];
+  nextMonthProjection: {
+    currentBalance: string;
+    periodLabel: string;
+    receita: string;
+    despesa: string;
+    investimento: string;
+    saldo: string;
+  };
   periodLabel: string;
   selectedMonth: string;
   statusLabel: DashboardStatus;
@@ -41,6 +49,7 @@ export function DashboardClient({
   categoriesByType,
   chartCards,
   initialTransactions,
+  nextMonthProjection,
   periodLabel,
   selectedMonth,
   statusLabel,
@@ -217,6 +226,100 @@ export function DashboardClient({
           </section>
 
           <ChartSection charts={secondaryCharts} className="xl:grid-cols-2" />
+
+          <section>
+            <article className="overflow-hidden rounded-3xl border border-white/70 bg-white/85 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+              <div className="border-b border-slate-200/70 bg-slate-50/80 px-5 py-5 sm:px-6">
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Próximo mês
+                </span>
+                <div className="mt-3 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+                      Projeção de fechamento
+                    </h2>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      Visão prevista para {nextMonthProjection.periodLabel} com base nos lançamentos futuros cadastrados.
+                    </p>
+                  </div>
+
+                  <div className="inline-flex w-fit rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm">
+                    Saldo atual: <strong className="ml-1 font-semibold text-slate-950">{nextMonthProjection.currentBalance}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 sm:p-6">
+                <div className="grid gap-6 xl:grid-cols-[1fr_minmax(340px,0.95fr)] xl:items-stretch">
+                  <div className="grid gap-3 xl:grid-cols-2 xl:grid-rows-[auto_1fr]">
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 xl:col-span-2">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-slate-600">Receita prevista</p>
+                          <strong className="mt-2 block text-2xl font-semibold tracking-tight text-emerald-700">
+                            {nextMonthProjection.receita}
+                          </strong>
+                        </div>
+                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                          Entrada
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                      <p className="text-sm font-medium text-slate-600">Despesa prevista</p>
+                      <strong className="mt-2 block text-xl font-semibold tracking-tight text-rose-700">
+                        {nextMonthProjection.despesa}
+                      </strong>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                      <p className="text-sm font-medium text-slate-600">Investimento previsto</p>
+                      <strong className="mt-2 block text-xl font-semibold tracking-tight text-sky-700">
+                        {nextMonthProjection.investimento}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 sm:p-6 xl:h-full">
+                    <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Saldo projetado
+                    </span>
+                    <strong
+                      className={`mt-3 block text-3xl font-semibold tracking-tight sm:text-4xl ${
+                        nextMonthProjection.saldo.includes("-")
+                          ? "text-rose-700"
+                          : nextMonthProjection.saldo.includes("R$ 0,00")
+                            ? "text-slate-950"
+                            : "text-emerald-700"
+                      }`}
+                    >
+                      {nextMonthProjection.saldo}
+                    </strong>
+                    <p className="mt-3 text-sm text-slate-600">Fechamento previsto do mês.</p>
+
+                    <div className="mt-6 h-3 overflow-hidden rounded-full bg-white shadow-inner">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-sky-400 to-rose-400"
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-3 text-xs font-medium text-slate-500">
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Receita prevista
+                      </span>
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full bg-rose-500" /> Despesa prevista
+                      </span>
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full bg-sky-500" /> Investimento previsto
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </section>
 
           <section className="grid gap-4">
             <ChartSection charts={primaryCharts} />

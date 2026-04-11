@@ -49,6 +49,21 @@ function formatDateInput(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
+function getCurrentMonthKey() {
+  return formatDateInput(new Date()).slice(0, 7);
+}
+
+function getTodayDate() {
+  return new Date(`${formatDateInput(new Date())}T23:59:59`);
+}
+
+function getNextMonthKey(month: string) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const nextMonthDate = new Date(Date.UTC(year, monthNumber, 1));
+
+  return nextMonthDate.toISOString().slice(0, 7);
+}
+
 function formatCurrencyInput(amount: string) {
   return Number(amount).toLocaleString("pt-BR", {
     style: "currency",
@@ -181,6 +196,16 @@ export function filterTransactionsByMonth(transactions: TransactionRecord[], mon
   }
 
   return transactions.filter((transaction) => formatDateInput(transaction.date).startsWith(month));
+}
+
+export function filterCurrentDashboardTransactions(transactions: TransactionRecord[], month: string | undefined) {
+  if (month) {
+    return filterTransactionsByMonth(transactions, month);
+  }
+
+  const today = getTodayDate();
+
+  return transactions.filter((transaction) => transaction.date <= today);
 }
 
 export function mapTransactionsToItems(transactions: TransactionRecord[]) {
@@ -485,6 +510,65 @@ export function getDashboardStatus(transactions: TransactionRecord[]): Dashboard
   }
 
   return "Em alerta";
+}
+
+export function buildNextMonthProjection(transactions: TransactionRecord[]) {
+  const nextMonth = getNextMonthKey(getCurrentMonthKey());
+  const currentBalance = transactions.reduce((accumulator, transaction) => {
+    if (transaction.date > getTodayDate()) {
+      return accumulator;
+    }
+
+    const amount = Number(transaction.amount.toString());
+
+    if (transaction.type === "RECEITA") {
+      return accumulator + amount;
+    }
+
+    return accumulator - amount;
+  }, 0);
+  const nextMonthTransactions = filterTransactionsByMonth(transactions, nextMonth);
+
+  const totals = nextMonthTransactions.reduce(
+    (accumulator, transaction) => {
+      const amount = Number(transaction.amount.toString());
+
+      if (transaction.type === "RECEITA") {
+        accumulator.receita += amount;
+      }
+
+      if (transaction.type === "DESPESA") {
+        accumulator.despesa += amount;
+      }
+
+      if (transaction.type === "INVESTIMENTO") {
+        accumulator.investimento += amount;
+      }
+
+      return accumulator;
+    },
+    {
+      receita: 0,
+      despesa: 0,
+      investimento: 0,
+    },
+  );
+
+  const saldo = currentBalance + totals.receita - totals.despesa - totals.investimento;
+  const periodLabel = new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${nextMonth}-01T00:00:00Z`));
+
+  return {
+    periodLabel,
+    currentBalance: formatAbsoluteCurrency(currentBalance),
+    receita: formatAbsoluteCurrency(totals.receita),
+    despesa: formatAbsoluteCurrency(totals.despesa),
+    investimento: formatAbsoluteCurrency(totals.investimento),
+    saldo: formatAbsoluteCurrency(saldo),
+  };
 }
 
 export async function createTransactionForUser(userId: string, formData: NewTransactionFormData) {

@@ -3,7 +3,9 @@ import { AppHeader } from "@/components/layout/app-header";
 import { DashboardClient } from "@/modules/dashboard/components/dashboard-client";
 import {
   buildChartCards,
+  buildNextMonthProjection,
   buildSummaryCards,
+  filterCurrentDashboardTransactions,
   filterTransactionsByMonth,
   getDashboardPeriodLabel,
   getDashboardStatus,
@@ -31,12 +33,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const selectedMonth = resolvedSearchParams?.mes;
   const transactions = await getTransactionsByUserId(user.id);
-  const filteredSummaryTransactions = filterTransactionsByMonth(transactions, selectedMonth);
+  const filteredSummaryTransactions = filterCurrentDashboardTransactions(transactions, selectedMonth);
   const availableMonths = getAvailableMonths(transactions);
   const periodLabel = getDashboardPeriodLabel(selectedMonth, availableMonths);
   const statusLabel = getDashboardStatus(filteredSummaryTransactions);
   const summaryCards = buildSummaryCards(filteredSummaryTransactions);
   const chartCards = buildChartCards(filteredSummaryTransactions);
+  const nextMonthProjection = buildNextMonthProjection(transactions);
   const categoriesByType = await getCategoryOptionsByType(user.id);
 
   return (
@@ -50,6 +53,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         categoriesByType={categoriesByType}
         chartCards={chartCards}
         initialTransactions={mapTransactionsToItems(transactions)}
+        nextMonthProjection={nextMonthProjection}
         periodLabel={periodLabel}
         selectedMonth={selectedMonth ?? ""}
         statusLabel={statusLabel}
