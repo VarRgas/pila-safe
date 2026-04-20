@@ -9,6 +9,7 @@ import { NewTransactionModal } from "@/modules/transactions/components/new-trans
 import { RecentTransactions } from "@/modules/dashboard/components/recent-transactions";
 import { SummaryCard } from "@/modules/dashboard/components/summary-card";
 import { UiSelect } from "@/components/ui-select";
+import { maskFinancialValue, useUi } from "@/shared/lib/ui-context";
 import { supabase } from "@/shared/lib/supabase";
 import type {
   CategoryOptionsByType,
@@ -56,6 +57,7 @@ export function DashboardClient({
   summaryCards,
 }: DashboardClientProps) {
   const router = useRouter();
+  const { hideValues } = useUi();
   const [formResetKey, setFormResetKey] = useState(0);
   const [categoryOptions, setCategoryOptions] = useState(categoriesByType);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -243,9 +245,9 @@ export function DashboardClient({
                     </p>
                   </div>
 
-                  <div className="inline-flex w-fit rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm">
-                    Saldo atual: <strong className="ml-1 font-semibold text-slate-950">{nextMonthProjection.currentBalance}</strong>
-                  </div>
+                   <div className="inline-flex w-fit rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm">
+                     Saldo atual: <strong className="ml-1 font-semibold text-slate-950">{maskFinancialValue(nextMonthProjection.currentBalance, hideValues)}</strong>
+                   </div>
                 </div>
               </div>
 
@@ -256,9 +258,9 @@ export function DashboardClient({
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <p className="text-sm font-medium text-slate-600">Receita prevista</p>
-                          <strong className="mt-2 block text-2xl font-semibold tracking-tight text-emerald-700">
-                            {nextMonthProjection.receita}
-                          </strong>
+                           <strong className="mt-2 block text-2xl font-semibold tracking-tight text-emerald-700">
+                             {maskFinancialValue(nextMonthProjection.receita, hideValues)}
+                           </strong>
                         </div>
                         <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                           Entrada
@@ -268,16 +270,16 @@ export function DashboardClient({
 
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <p className="text-sm font-medium text-slate-600">Despesa prevista</p>
-                      <strong className="mt-2 block text-xl font-semibold tracking-tight text-rose-700">
-                        {nextMonthProjection.despesa}
-                      </strong>
+                       <strong className="mt-2 block text-xl font-semibold tracking-tight text-rose-700">
+                         {maskFinancialValue(nextMonthProjection.despesa, hideValues)}
+                       </strong>
                     </div>
 
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <p className="text-sm font-medium text-slate-600">Investimento previsto</p>
-                      <strong className="mt-2 block text-xl font-semibold tracking-tight text-sky-700">
-                        {nextMonthProjection.investimento}
-                      </strong>
+                       <strong className="mt-2 block text-xl font-semibold tracking-tight text-sky-700">
+                         {maskFinancialValue(nextMonthProjection.investimento, hideValues)}
+                       </strong>
                     </div>
                   </div>
 
@@ -286,16 +288,16 @@ export function DashboardClient({
                       Saldo projetado
                     </span>
                     <strong
-                      className={`mt-3 block text-3xl font-semibold tracking-tight sm:text-4xl ${
-                        nextMonthProjection.saldo.includes("-")
-                          ? "text-rose-700"
+                       className={`mt-3 block text-3xl font-semibold tracking-tight sm:text-4xl ${
+                          nextMonthProjection.saldo.includes("-")
+                            ? "text-rose-700"
                           : nextMonthProjection.saldo.includes("R$ 0,00")
                             ? "text-slate-950"
                             : "text-emerald-700"
                       }`}
-                    >
-                      {nextMonthProjection.saldo}
-                    </strong>
+                      >
+                       {maskFinancialValue(nextMonthProjection.saldo, hideValues)}
+                     </strong>
                     <p className="mt-3 text-sm text-slate-600">Fechamento previsto do mês.</p>
 
                     <div className="mt-6 h-3 overflow-hidden rounded-full bg-white shadow-inner">

@@ -42,6 +42,12 @@ const typeButtonClasses = {
   INVESTIMENTO: "border-sky-200 bg-sky-50 text-sky-700",
 };
 
+const typeDescriptions = {
+  RECEITA: "Entradas e ganhos",
+  DESPESA: "Saidas e contas",
+  INVESTIMENTO: "Aportes e reserva",
+};
+
 type FormErrors = Partial<Record<keyof NewTransactionFormData, string>>;
 
 export function NewTransactionModal({
@@ -76,6 +82,7 @@ export function NewTransactionModal({
   const isEditMode = Boolean(initialData);
   const categoryFieldRef = useRef<HTMLDivElement>(null);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const currentCategories = categoriesByType[formData.type];
   const normalizedCategoryQuery = categoryQuery.trim().toLowerCase();
@@ -306,9 +313,14 @@ export function NewTransactionModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex touch-pan-y items-end justify-center overflow-x-hidden bg-slate-950/45 p-2 backdrop-blur-sm sm:items-center sm:px-4 sm:py-8">
-      <div className="flex max-h-[100dvh] w-full max-w-2xl min-w-0 touch-pan-y flex-col overflow-hidden rounded-[24px] border border-white/70 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.20)] sm:max-h-[88vh] sm:rounded-[28px]">
-        <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:gap-4 sm:px-8 sm:py-6">
+    <div className="fixed inset-0 z-50 flex touch-pan-y items-end justify-center overflow-x-hidden bg-slate-950/55 p-0 backdrop-blur-sm sm:p-4 sm:py-8">
+      <div className="flex max-h-[100dvh] w-full max-w-2xl min-w-0 touch-pan-y flex-col overflow-hidden rounded-t-[28px] border border-white/70 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.24)] sm:max-h-[88vh] sm:rounded-[28px]">
+        <div className="flex justify-center border-b border-slate-100 px-4 pb-2 pt-3 sm:hidden">
+          <span className="h-1.5 w-14 rounded-full bg-slate-200" />
+        </div>
+
+        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/88">
+          <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:gap-4 sm:px-8 sm:py-6">
           <div className="min-w-0 flex-1">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
               {isEditMode ? "Editar lançamento" : "Novo lançamento"}
@@ -316,6 +328,9 @@ export function NewTransactionModal({
             <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
               {isEditMode ? "Atualizar movimentação financeira" : "Adicionar movimentação financeira"}
             </h2>
+            <p className="mt-1 text-sm text-slate-500 sm:hidden">
+              Preencha os dados abaixo e salve a movimentação.
+            </p>
           </div>
 
           <button
@@ -327,12 +342,15 @@ export function NewTransactionModal({
             }}
             className="shrink-0 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
           >
-            Fechar
+            <span className="hidden sm:inline">Fechar</span>
+            <span className="sm:hidden">X</span>
           </button>
+        </div>
         </div>
 
         <form
-          className="flex-1 touch-pan-y overflow-x-hidden overflow-y-auto px-4 py-4 sm:px-8 sm:py-6"
+          ref={formRef}
+          className="flex-1 touch-pan-y overflow-x-hidden overflow-y-auto px-4 py-4 pb-32 sm:px-8 sm:py-6 sm:pb-6"
           onSubmit={handleSubmit}
           onPointerDown={(event) => event.stopPropagation()}
           style={{ overscrollBehavior: "contain", scrollbarGutter: "stable" }}
@@ -344,6 +362,22 @@ export function NewTransactionModal({
           ) : null}
 
           <div className="grid gap-5 sm:grid-cols-2">
+            <div className="sm:col-span-2 sm:hidden">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Tipo selecionado
+                </span>
+                <strong className="mt-1 block text-base font-semibold text-slate-950">
+                  {formData.type === "RECEITA"
+                    ? "Receita"
+                    : formData.type === "DESPESA"
+                      ? "Despesa"
+                      : "Investimento"}
+                </strong>
+                <p className="mt-1 text-sm text-slate-500">{typeDescriptions[formData.type]}</p>
+              </div>
+            </div>
+
             <label className="sm:col-span-2">
               <span className="mb-2 block text-sm font-medium text-slate-700">Descrição</span>
               <input
@@ -364,7 +398,7 @@ export function NewTransactionModal({
 
             <div className="sm:col-span-2">
               <span className="mb-2 block text-sm font-medium text-slate-700">Tipo</span>
-              <div className="flex flex-wrap gap-2 md:flex-nowrap">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 md:flex-nowrap">
                 {typeOptions.map((option) => {
                   const isActive = formData.type === option;
 
@@ -373,7 +407,7 @@ export function NewTransactionModal({
                       key={option}
                       type="button"
                       onClick={() => updateField("type", option)}
-                      className={`min-h-12 min-w-0 whitespace-nowrap rounded-2xl border px-3 py-3 text-sm font-semibold transition md:flex-1 ${
+                      className={`min-h-14 min-w-0 rounded-2xl border px-3 py-3 text-left text-sm font-semibold transition md:flex-1 ${
                         isActive
                           ? `${typeButtonClasses[option]} shadow-sm ring-2 ring-offset-1 ${
                               option === "RECEITA"
@@ -384,10 +418,13 @@ export function NewTransactionModal({
                             }`
                           : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white hover:text-slate-900"
                       }`}
-                    >
-                      {option}
-                    </button>
-                  );
+                      >
+                        <span className="block">{option}</span>
+                        <span className="mt-1 block text-xs font-medium opacity-80">
+                          {typeDescriptions[option]}
+                        </span>
+                      </button>
+                    );
                 })}
               </div>
             </div>
@@ -402,10 +439,10 @@ export function NewTransactionModal({
                 <button
                   type="button"
                   onClick={() => setIsCategoryOpen(true)}
-                  className={`flex h-12 w-full items-center justify-between rounded-2xl border px-4 pr-10 text-left text-base text-slate-900 shadow-sm outline-none transition focus:bg-white focus:ring-2 focus:ring-slate-300 sm:hidden ${
-                    errors.category
-                      ? "border-rose-300 bg-rose-50 hover:border-rose-400 focus:border-rose-400"
-                      : "border-slate-200 bg-white hover:border-slate-400 focus:border-slate-400"
+                  className={`flex min-h-14 w-full items-center justify-between rounded-2xl border px-4 pr-10 text-left text-base text-slate-900 shadow-sm outline-none transition focus:bg-white focus:ring-2 focus:ring-slate-300 sm:hidden ${
+                     errors.category
+                       ? "border-rose-300 bg-rose-50 hover:border-rose-400 focus:border-rose-400"
+                       : "border-slate-200 bg-white hover:border-slate-400 focus:border-slate-400"
                   }`}
                 >
                   <span className={`truncate ${formData.category ? "text-slate-900" : "text-slate-400"}`}>
@@ -486,7 +523,7 @@ export function NewTransactionModal({
             </label>
           </div>
 
-          <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
+          <div className="mt-6 hidden flex-col gap-3 border-t border-slate-100 pt-5 sm:flex sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={() => {
@@ -508,16 +545,52 @@ export function NewTransactionModal({
             </button>
           </div>
         </form>
+
+        <div className="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/88 sm:hidden">
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setFormData(getDefaultFormData());
+                setErrors({});
+                onClose();
+              }}
+              disabled={isSubmitting}
+              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                formRef.current?.requestSubmit();
+              }}
+              disabled={isSubmitting}
+              className="inline-flex min-h-12 flex-[1.25] items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+            >
+              {isSubmitting ? "Salvando..." : isEditMode ? "Salvar" : "Salvar"}
+            </button>
+          </div>
+        </div>
       </div>
 
       {isCategoryOpen
         ? createPortal(
             <div
               ref={categoryDropdownRef}
-              className="fixed z-[60] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_16px_45px_rgba(15,23,42,0.12)]"
+              className="fixed z-[60] overflow-hidden rounded-t-[24px] border border-slate-200 bg-white shadow-[0_16px_45px_rgba(15,23,42,0.12)] sm:rounded-2xl"
               style={categoryDropdownStyle}
             >
               <div className="border-b border-slate-100 p-3">
+                <div className="mb-3 flex justify-center sm:hidden">
+                  <span className="h-1.5 w-14 rounded-full bg-slate-200" />
+                </div>
+                <div className="mb-3 sm:hidden">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Categoria
+                  </p>
+                  <h3 className="mt-1 text-lg font-semibold text-slate-950">Selecionar ou criar</h3>
+                </div>
                 <input
                   value={categoryQuery}
                   onChange={(event) => {
@@ -535,7 +608,7 @@ export function NewTransactionModal({
                 />
               </div>
 
-              <div className="max-h-60 overflow-y-auto p-2">
+              <div className="max-h-[min(55vh,26rem)] overflow-y-auto p-2 sm:max-h-60">
                 {filteredCategories.length > 0 ? (
                   filteredCategories.map((category) => (
                     <button
