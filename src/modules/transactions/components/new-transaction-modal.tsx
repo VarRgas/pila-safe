@@ -312,45 +312,49 @@ export function NewTransactionModal({
     await onSubmit(formData);
   }
 
+  function handleClose() {
+    setFormData(getDefaultFormData());
+    setCategoryQuery("");
+    setErrors({});
+    setNewCategoryError(null);
+    setIsCategoryOpen(false);
+    onClose();
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex touch-pan-y items-end justify-center overflow-x-hidden bg-slate-950/55 p-0 backdrop-blur-sm sm:p-4 sm:py-8">
-      <div className="flex max-h-[100dvh] w-full max-w-2xl min-w-0 touch-pan-y flex-col overflow-hidden rounded-t-[28px] border border-white/70 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.24)] sm:max-h-[88vh] sm:rounded-[28px]">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="flex max-h-[100dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-[30px] border border-white/70 bg-white shadow-[0_32px_90px_rgba(15,23,42,0.22)] sm:max-h-[90vh] sm:rounded-[30px]">
         <div className="flex justify-center border-b border-slate-100 px-4 pb-2 pt-3 sm:hidden">
           <span className="h-1.5 w-14 rounded-full bg-slate-200" />
         </div>
 
-        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/88">
-          <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:gap-4 sm:px-8 sm:py-6">
-          <div className="min-w-0 flex-1">
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-              {isEditMode ? "Editar lançamento" : "Novo lançamento"}
-            </span>
-            <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-              {isEditMode ? "Atualizar movimentação financeira" : "Adicionar movimentação financeira"}
-            </h2>
-            <p className="mt-1 text-sm text-slate-500 sm:hidden">
-              Preencha os dados abaixo e salve a movimentação.
-            </p>
-          </div>
+        <div className="sticky top-0 z-10 border-b border-slate-100 bg-white/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/88 sm:px-6 sm:py-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                {isEditMode ? "Editar lançamento" : "Novo lançamento"}
+              </span>
+              <h2 className="mt-2 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+                {isEditMode ? "Atualizar movimentação" : "Adicionar movimentação"}
+              </h2>
+            </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setFormData(getDefaultFormData());
-              setErrors({});
-              onClose();
-            }}
-            className="shrink-0 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
-          >
-            <span className="hidden sm:inline">Fechar</span>
-            <span className="sm:hidden">X</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+              aria-label="Fechar modal"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" d="M6 6l12 12M18 6 6 18" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <form
           ref={formRef}
-          className="flex-1 touch-pan-y overflow-x-hidden overflow-y-auto px-4 py-4 pb-32 sm:px-8 sm:py-6 sm:pb-6"
+          className="flex-1 overflow-y-auto px-4 py-3 pb-24 sm:px-6 sm:py-5 sm:pb-5"
           onSubmit={handleSubmit}
           onPointerDown={(event) => event.stopPropagation()}
           style={{ overscrollBehavior: "contain", scrollbarGutter: "stable" }}
@@ -361,30 +365,14 @@ export function NewTransactionModal({
             </div>
           ) : null}
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="sm:col-span-2 sm:hidden">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  Tipo selecionado
-                </span>
-                <strong className="mt-1 block text-base font-semibold text-slate-950">
-                  {formData.type === "RECEITA"
-                    ? "Receita"
-                    : formData.type === "DESPESA"
-                      ? "Despesa"
-                      : "Investimento"}
-                </strong>
-                <p className="mt-1 text-sm text-slate-500">{typeDescriptions[formData.type]}</p>
-              </div>
-            </div>
-
+          <div className="grid gap-4 sm:grid-cols-2">
             <label className="sm:col-span-2">
-              <span className="mb-2 block text-sm font-medium text-slate-700">Descrição</span>
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">Descrição</span>
               <input
                 required
                 value={formData.description}
                 onChange={(event) => updateField("description", event.target.value)}
-                className={`w-full rounded-2xl border px-4 py-3 text-sm text-slate-900 outline-none transition focus:bg-white ${
+                className={`w-full rounded-2xl border px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:bg-white ${
                   errors.description
                     ? "border-rose-300 bg-rose-50 focus:border-rose-400"
                     : "border-slate-200 bg-slate-50 focus:border-slate-400"
@@ -392,13 +380,13 @@ export function NewTransactionModal({
                 placeholder="Ex.: Conta de energia"
               />
               {errors.description ? (
-                <span className="mt-2 block text-sm text-rose-600">{errors.description}</span>
+                <span className="mt-1.5 block text-sm text-rose-600">{errors.description}</span>
               ) : null}
             </label>
 
             <div className="sm:col-span-2">
-              <span className="mb-2 block text-sm font-medium text-slate-700">Tipo</span>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 md:flex-nowrap">
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">Tipo</span>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {typeOptions.map((option) => {
                   const isActive = formData.type === option;
 
@@ -407,7 +395,7 @@ export function NewTransactionModal({
                       key={option}
                       type="button"
                       onClick={() => updateField("type", option)}
-                      className={`min-h-14 min-w-0 rounded-2xl border px-3 py-3 text-left text-sm font-semibold transition md:flex-1 ${
+                      className={`rounded-2xl border px-3 py-2.5 text-left transition ${
                         isActive
                           ? `${typeButtonClasses[option]} shadow-sm ring-2 ring-offset-1 ${
                               option === "RECEITA"
@@ -416,33 +404,26 @@ export function NewTransactionModal({
                                   ? "ring-rose-200"
                                   : "ring-sky-200"
                             }`
-                          : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white hover:text-slate-900"
+                          : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white"
                       }`}
-                      >
-                        <span className="block">{option}</span>
-                        <span className="mt-1 block text-xs font-medium opacity-80">
-                          {typeDescriptions[option]}
-                        </span>
-                      </button>
-                    );
+                    >
+                      <span className="block text-sm font-semibold">{option}</span>
+                    </button>
+                  );
                 })}
               </div>
             </div>
 
-            <div className="min-w-0">
-              <span className="mb-2 block text-sm font-medium text-slate-700">Categoria</span>
-              <div
-                ref={categoryFieldRef}
-                className="relative"
-                onFocus={() => setIsCategoryOpen(true)}
-              >
+            <div className="sm:col-span-2 min-w-0">
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">Categoria</span>
+              <div ref={categoryFieldRef} className="relative" onFocus={() => setIsCategoryOpen(true)}>
                 <button
                   type="button"
                   onClick={() => setIsCategoryOpen(true)}
-                  className={`flex min-h-14 w-full items-center justify-between rounded-2xl border px-4 pr-10 text-left text-base text-slate-900 shadow-sm outline-none transition focus:bg-white focus:ring-2 focus:ring-slate-300 sm:hidden ${
-                     errors.category
-                       ? "border-rose-300 bg-rose-50 hover:border-rose-400 focus:border-rose-400"
-                       : "border-slate-200 bg-white hover:border-slate-400 focus:border-slate-400"
+                  className={`flex h-11 w-full items-center justify-between rounded-2xl border px-4 pr-10 text-left text-sm text-slate-900 shadow-sm outline-none transition focus:bg-white focus:ring-2 focus:ring-slate-300 sm:hidden ${
+                    errors.category
+                      ? "border-rose-300 bg-rose-50 hover:border-rose-400 focus:border-rose-400"
+                      : "border-slate-200 bg-slate-50 hover:border-slate-400 focus:border-slate-400"
                   }`}
                 >
                   <span className={`truncate ${formData.category ? "text-slate-900" : "text-slate-400"}`}>
@@ -465,10 +446,10 @@ export function NewTransactionModal({
                   }}
                   onFocus={() => setIsCategoryOpen(true)}
                   placeholder="Selecione ou busque uma categoria"
-                  className={`hidden h-12 w-full rounded-2xl border px-4 pr-10 text-base text-slate-900 shadow-sm outline-none transition focus:bg-white focus:ring-2 focus:ring-slate-300 sm:block sm:text-sm ${
+                  className={`hidden h-11 w-full rounded-2xl border px-4 pr-10 text-sm text-slate-900 shadow-sm outline-none transition focus:bg-white focus:ring-2 focus:ring-slate-300 sm:block ${
                     errors.category
                       ? "border-rose-300 bg-rose-50 hover:border-rose-400 focus:border-rose-400"
-                      : "border-slate-200 bg-white hover:border-slate-400 focus:border-slate-400"
+                      : "border-slate-200 bg-slate-50 hover:border-slate-400 focus:border-slate-400"
                   }`}
                 />
                 <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -476,99 +457,63 @@ export function NewTransactionModal({
                 </span>
               </div>
 
-              {errors.category ? (
-                <span className="mt-2 block text-sm text-rose-600">{errors.category}</span>
-              ) : null}
-              {newCategoryError ? (
-                <span className="mt-2 block text-sm text-rose-600">{newCategoryError}</span>
-              ) : null}
+              {errors.category ? <span className="mt-1.5 block text-sm text-rose-600">{errors.category}</span> : null}
+              {newCategoryError ? <span className="mt-1.5 block text-sm text-rose-600">{newCategoryError}</span> : null}
             </div>
 
             <label className="min-w-0">
-              <span className="mb-2 block text-sm font-medium text-slate-700">Valor</span>
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">Valor</span>
               <input
                 required
                 inputMode="numeric"
                 type="text"
                 value={formData.amount}
                 onChange={(event) => updateField("amount", formatCurrencyValue(event.target.value))}
-                className={`w-full rounded-2xl border px-4 py-3 text-sm text-slate-900 outline-none transition focus:bg-white ${
+                className={`w-full rounded-2xl border px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:bg-white ${
                   errors.amount
                     ? "border-rose-300 bg-rose-50 focus:border-rose-400"
                     : "border-slate-200 bg-slate-50 focus:border-slate-400"
                 }`}
                 placeholder="R$ 0,00"
               />
-              {errors.amount ? (
-                <span className="mt-2 block text-sm text-rose-600">{errors.amount}</span>
-              ) : null}
+              {errors.amount ? <span className="mt-1.5 block text-sm text-rose-600">{errors.amount}</span> : null}
             </label>
 
             <label className="min-w-0">
-              <span className="mb-2 block text-sm font-medium text-slate-700">Data</span>
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">Data</span>
               <input
                 required
                 type="date"
                 value={formData.date}
                 onChange={(event) => updateField("date", event.target.value)}
-                className={`w-full rounded-2xl border px-4 py-3 text-sm text-slate-900 outline-none transition focus:bg-white ${
+                className={`w-full rounded-2xl border px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:bg-white ${
                   errors.date
                     ? "border-rose-300 bg-rose-50 focus:border-rose-400"
                     : "border-slate-200 bg-slate-50 focus:border-slate-400"
                 }`}
               />
-              {errors.date ? (
-                <span className="mt-2 block text-sm text-rose-600">{errors.date}</span>
-              ) : null}
+              {errors.date ? <span className="mt-1.5 block text-sm text-rose-600">{errors.date}</span> : null}
             </label>
-          </div>
-
-          <div className="mt-6 hidden flex-col gap-3 border-t border-slate-100 pt-5 sm:flex sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={() => {
-                setFormData(getDefaultFormData());
-                setErrors({});
-                onClose();
-              }}
-              disabled={isSubmitting}
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 sm:w-auto"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400 sm:w-auto"
-            >
-              {isSubmitting ? "Salvando..." : isEditMode ? "Salvar alterações" : "Salvar lançamento"}
-            </button>
           </div>
         </form>
 
-        <div className="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/88 sm:hidden">
-          <div className="flex gap-3">
+        <div className="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-white/88 sm:px-6">
+          <div className="flex gap-3 sm:justify-end">
             <button
               type="button"
-              onClick={() => {
-                setFormData(getDefaultFormData());
-                setErrors({});
-                onClose();
-              }}
+              onClick={handleClose}
               disabled={isSubmitting}
-              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 sm:max-w-36 sm:flex-none"
             >
               Cancelar
             </button>
             <button
               type="button"
-              onClick={() => {
-                formRef.current?.requestSubmit();
-              }}
+              onClick={() => formRef.current?.requestSubmit()}
               disabled={isSubmitting}
-              className="inline-flex min-h-12 flex-[1.25] items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="inline-flex min-h-11 flex-[1.2] items-center justify-center rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400 sm:max-w-56 sm:flex-none"
             >
-              {isSubmitting ? "Salvando..." : isEditMode ? "Salvar" : "Salvar"}
+              {isSubmitting ? "Salvando..." : isEditMode ? "Salvar alterações" : "Salvar lançamento"}
             </button>
           </div>
         </div>
