@@ -3,21 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  createCategoryAction,
-  createTransactionAction,
-  deleteTransactionAction,
-  updateTransactionAction,
-} from "@/modules/transactions/actions/transactions";
+import { deleteTransactionAction } from "@/modules/transactions/actions/transactions";
 import { FeedbackToast } from "@/components/feedback-toast";
-import { NewTransactionModal } from "@/modules/transactions/components/new-transaction-modal";
 import { TransactionsTable } from "@/modules/transactions/components/transactions-table";
 import { UiSelect } from "@/components/ui-select";
 import { supabase } from "@/shared/lib/supabase";
-import type { CategoryOptionsByType, NewTransactionFormData, TransactionItem } from "@/shared/types/dashboard";
+import type { TransactionItem } from "@/shared/types/dashboard";
 
 type TransactionsPageClientProps = {
-  categoriesByType: CategoryOptionsByType;
   initialTransactions: TransactionItem[];
 };
 
@@ -32,20 +25,11 @@ function parseCurrencyValue(value: string) {
   return Number(value.replace(/[^\d,-]/g, "").replace(".", "").replace(",", ".")) || 0;
 }
 
-export function TransactionsPageClient({
-  categoriesByType,
-  initialTransactions,
-}: TransactionsPageClientProps) {
+export function TransactionsPageClient({ initialTransactions }: TransactionsPageClientProps) {
   const router = useRouter();
-  const [formResetKey, setFormResetKey] = useState(0);
-  const [categoryOptions, setCategoryOptions] = useState(categoriesByType);
   const [transactions, setTransactions] = useState(initialTransactions);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState>(null);
-  const [editingTransaction, setEditingTransaction] = useState<TransactionItem | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("date-desc");
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -103,10 +87,6 @@ export function TransactionsPageClient({
   }, [initialTransactions]);
 
   useEffect(() => {
-    setCategoryOptions(categoriesByType);
-  }, [categoriesByType]);
-
-  useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -120,51 +100,6 @@ export function TransactionsPageClient({
     };
   }, [router]);
 
-  async function handleSubmit(formData: NewTransactionFormData) {
-    setIsSubmitting(true);
-    setSubmitError(null);
-    setToast(null);
-
-    const result = editingTransaction
-      ? await updateTransactionAction(editingTransaction.id, formData)
-      : await createTransactionAction(formData);
-
-    if (!result.success || !result.transaction) {
-      setSubmitError(result.error ?? "Não foi possível salvar o lançamento.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    const savedTransaction = result.transaction;
-
-    setTransactions((current) => {
-      if (editingTransaction) {
-        return current.map((transaction) =>
-          transaction.id === editingTransaction.id ? savedTransaction : transaction,
-        );
-      }
-
-      return [savedTransaction, ...current];
-    });
-
-    setToast({
-      message: editingTransaction
-        ? "Movimentação atualizada com sucesso"
-        : "Movimentação criada com sucesso",
-      tone: "success",
-    });
-
-    if (editingTransaction) {
-      setEditingTransaction(null);
-      setIsModalOpen(false);
-    } else {
-      setFormResetKey((current) => current + 1);
-    }
-
-    setIsSubmitting(false);
-    router.refresh();
-  }
-
   async function handleDelete(transaction: TransactionItem) {
     const confirmed = window.confirm(`Deseja excluir o lançamento "${transaction.description}"?`);
 
@@ -173,7 +108,6 @@ export function TransactionsPageClient({
     }
 
     setPendingDeleteId(transaction.id);
-    setSubmitError(null);
     setToast(null);
 
     const result = await deleteTransactionAction(transaction.id);
@@ -197,33 +131,7 @@ export function TransactionsPageClient({
   }
 
   function handleEdit(transaction: TransactionItem) {
-    setEditingTransaction(transaction);
-    setSubmitError(null);
-    setToast(null);
-    setIsModalOpen(true);
-  }
-
-  async function handleCreateCategory(type: TransactionItem["type"], name: string) {
-    const result = await createCategoryAction(type, name);
-
-    if (!result.success || !result.categoryName) {
-      setToast({
-        message: result.error ?? "Não foi possível criar a categoria.",
-        tone: "error",
-      });
-      return null;
-    }
-
-    setCategoryOptions((current) => ({
-      ...current,
-      [type]: [...current[type], result.categoryName!].sort((first, second) => first.localeCompare(second)),
-    }));
-    setToast({
-      message: "Categoria criada com sucesso",
-      tone: "success",
-    });
-
-    return result.categoryName;
+    router.push(`/lancamentos/${transaction.id}/editar?voltar=%2Flancamentos`);
   }
 
   return (
@@ -252,18 +160,12 @@ export function TransactionsPageClient({
                 >
                   Voltar ao dashboard
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingTransaction(null);
-                    setSubmitError(null);
-                    setToast(null);
-                    setIsModalOpen(true);
-                  }}
+                <Link
+                  href="/lancamentos/novo?voltar=%2Flancamentos"
                   className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-sm"
                 >
                   Novo lançamento
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -314,22 +216,6 @@ export function TransactionsPageClient({
           </section>
         </div>
       </main>
-
-      <NewTransactionModal
-        key={`${isModalOpen ? "open" : "closed"}-${editingTransaction?.id ?? `new-${formResetKey}`}`}
-        isOpen={isModalOpen}
-        categoriesByType={categoryOptions}
-        onClose={() => {
-          setSubmitError(null);
-          setEditingTransaction(null);
-          setIsModalOpen(false);
-        }}
-        onCreateCategory={handleCreateCategory}
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-        submitError={submitError}
-        initialData={editingTransaction}
-      />
 
       {toast ? <FeedbackToast message={toast.message} tone={toast.tone} onClose={() => setToast(null)} /> : null}
     </>

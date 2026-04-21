@@ -1,29 +1,24 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createCategoryAction, createTransactionAction } from "@/modules/transactions/actions/transactions";
 import { ChartSection } from "@/modules/dashboard/components/chart-section";
-import { FeedbackToast } from "@/components/feedback-toast";
-import { NewTransactionModal } from "@/modules/transactions/components/new-transaction-modal";
 import { RecentTransactions } from "@/modules/dashboard/components/recent-transactions";
 import { SummaryCard } from "@/modules/dashboard/components/summary-card";
 import { UiSelect } from "@/components/ui-select";
 import { maskFinancialValue, useUi } from "@/shared/lib/ui-context";
 import { supabase } from "@/shared/lib/supabase";
 import type {
-  CategoryOptionsByType,
   ChartCardData,
   DashboardMonthOption,
   DashboardStatus,
-  NewTransactionFormData,
   SummaryCardData,
   TransactionItem,
 } from "@/shared/types/dashboard";
 
 type DashboardClientProps = {
   availableMonths: DashboardMonthOption[];
-  categoriesByType: CategoryOptionsByType;
   chartCards: ChartCardData[];
   initialTransactions: TransactionItem[];
   nextMonthProjection: {
@@ -40,14 +35,8 @@ type DashboardClientProps = {
   summaryCards: SummaryCardData[];
 };
 
-type ToastState = {
-  message: string;
-  tone: "success" | "error";
-} | null;
-
 export function DashboardClient({
   availableMonths,
-  categoriesByType,
   chartCards,
   initialTransactions,
   nextMonthProjection,
@@ -58,13 +47,7 @@ export function DashboardClient({
 }: DashboardClientProps) {
   const router = useRouter();
   const { hideValues } = useUi();
-  const [formResetKey, setFormResetKey] = useState(0);
-  const [categoryOptions, setCategoryOptions] = useState(categoriesByType);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [transactions, setTransactions] = useState(initialTransactions);
-  const [isCreatingTransaction, setIsCreatingTransaction] = useState(false);
-  const [transactionError, setTransactionError] = useState<string | null>(null);
-  const [toast, setToast] = useState<ToastState>(null);
 
   const recentTransactions = useMemo(() => transactions.slice(0, 5), [transactions]);
   const primaryCharts = useMemo(
@@ -81,10 +64,6 @@ export function DashboardClient({
   }, [initialTransactions]);
 
   useEffect(() => {
-    setCategoryOptions(categoriesByType);
-  }, [categoriesByType]);
-
-  useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -97,57 +76,6 @@ export function DashboardClient({
       subscription.unsubscribe();
     };
   }, [router]);
-
-  async function handleAddTransaction(formData: NewTransactionFormData) {
-    setIsCreatingTransaction(true);
-    setTransactionError(null);
-    setToast(null);
-
-    const result = await createTransactionAction(formData);
-
-    if (!result.success || !result.transaction) {
-      setTransactionError(result.error ?? "Não foi possível salvar o lançamento.");
-      setIsCreatingTransaction(false);
-      return;
-    }
-
-    const savedTransaction = result.transaction;
-
-    setTransactions((current) => {
-      return [savedTransaction, ...current];
-    });
-
-    setToast({
-      message: "Movimentação criada com sucesso",
-      tone: "success",
-    });
-    setFormResetKey((current) => current + 1);
-    setIsCreatingTransaction(false);
-    router.refresh();
-  }
-
-  async function handleCreateCategory(type: TransactionItem["type"], name: string) {
-    const result = await createCategoryAction(type, name);
-
-    if (!result.success || !result.categoryName) {
-      setToast({
-        message: result.error ?? "Não foi possível criar a categoria.",
-        tone: "error",
-      });
-      return null;
-    }
-
-    setCategoryOptions((current) => ({
-      ...current,
-      [type]: [...current[type], result.categoryName!].sort((first, second) => first.localeCompare(second)),
-    }));
-    setToast({
-      message: "Categoria criada com sucesso",
-      tone: "success",
-    });
-
-    return result.categoryName;
-  }
 
   function handleMonthChange(month: string) {
     const params = new URLSearchParams();
@@ -333,34 +261,13 @@ export function DashboardClient({
         </div>
       </main>
 
-      <NewTransactionModal
-        key={`${isModalOpen ? "open" : "closed"}-new-${formResetKey}`}
-        isOpen={isModalOpen}
-        categoriesByType={categoryOptions}
-        onClose={() => {
-          setTransactionError(null);
-          setIsModalOpen(false);
-        }}
-        onCreateCategory={handleCreateCategory}
-        onSubmit={handleAddTransaction}
-        isSubmitting={isCreatingTransaction}
-        submitError={transactionError}
-      />
-
-      <button
-        type="button"
-        onClick={() => {
-          setTransactionError(null);
-          setToast(null);
-          setIsModalOpen(true);
-        }}
+      <Link
+        href="/lancamentos/novo?voltar=%2Fdashboard"
         className="fixed bottom-5 right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-2xl font-semibold text-white shadow-[0_16px_40px_rgba(15,23,42,0.24)] transition hover:-translate-y-0.5 hover:bg-slate-800 sm:hidden"
         aria-label="Novo lançamento"
       >
         +
-      </button>
-
-      {toast ? <FeedbackToast message={toast.message} tone={toast.tone} onClose={() => setToast(null)} /> : null}
+      </Link>
     </>
   );
 }

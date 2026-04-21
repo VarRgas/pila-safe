@@ -175,6 +175,18 @@ export async function getTransactionsByUserId(userId: string) {
   });
 }
 
+export async function getTransactionByIdForUser(userId: string, transactionId: string) {
+  return prisma.transaction.findFirst({
+    where: {
+      id: transactionId,
+      userId,
+    },
+    include: {
+      category: true,
+    },
+  });
+}
+
 export function getAvailableMonths(transactions: TransactionRecord[]): DashboardMonthOption[] {
   const formatter = new Intl.DateTimeFormat("pt-BR", {
     month: "long",

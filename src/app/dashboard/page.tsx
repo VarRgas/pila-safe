@@ -6,11 +6,9 @@ import {
   buildNextMonthProjection,
   buildSummaryCards,
   filterCurrentDashboardTransactions,
-  filterTransactionsByMonth,
   getDashboardPeriodLabel,
   getDashboardStatus,
   getAvailableMonths,
-  getCategoryOptionsByType,
   getTransactionsByUserId,
   mapTransactionsToItems,
 } from "@/modules/transactions/server";
@@ -40,7 +38,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const summaryCards = buildSummaryCards(filteredSummaryTransactions);
   const chartCards = buildChartCards(filteredSummaryTransactions);
   const nextMonthProjection = buildNextMonthProjection(transactions);
-  const categoriesByType = await getCategoryOptionsByType(user.id);
 
   return (
     <>
@@ -50,7 +47,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       />
       <DashboardClient
         availableMonths={availableMonths}
-        categoriesByType={categoriesByType}
         chartCards={chartCards}
         initialTransactions={mapTransactionsToItems(transactions)}
         nextMonthProjection={nextMonthProjection}
