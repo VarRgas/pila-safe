@@ -215,12 +215,9 @@ export function filterCurrentDashboardTransactions(transactions: TransactionReco
     return filterTransactionsByMonth(transactions, month);
   }
 
-  const currentMonth = getCurrentMonthKey();
   const today = getTodayDate();
 
-  return transactions.filter(
-    (transaction) => formatDateInput(transaction.date).startsWith(currentMonth) && transaction.date <= today,
-  );
+  return transactions.filter((transaction) => transaction.date <= today);
 }
 
 export function mapTransactionsToItems(transactions: TransactionRecord[]) {
@@ -502,16 +499,7 @@ export function getDashboardPeriodLabel(selectedMonth: string | undefined, avail
     return availableMonths.find((month) => month.value === selectedMonth)?.label ?? selectedMonth;
   }
 
-  const currentMonth = getCurrentMonthKey();
-
-  return (
-    availableMonths.find((month) => month.value === currentMonth)?.label ??
-    new Intl.DateTimeFormat("pt-BR", {
-      month: "long",
-      year: "numeric",
-      timeZone: "UTC",
-    }).format(new Date(`${currentMonth}-01T00:00:00Z`))
-  );
+  return "Todos os meses";
 }
 
 export function getDashboardStatus(transactions: TransactionRecord[]): DashboardStatus {
