@@ -401,7 +401,7 @@ export function TransactionFormPageClient({
               required
               value={formData.description}
               onChange={(event) => updateField("description", event.target.value)}
-              className={`w-full rounded-2xl border px-4 py-2 text-sm text-slate-900 outline-none transition focus:bg-white ${
+              className={`w-full rounded-2xl border px-4 py-2 text-base text-slate-900 outline-none transition focus:bg-white sm:text-sm ${
                 errors.description
                   ? "border-rose-300 bg-rose-50 focus:border-rose-400"
                   : "border-slate-200 bg-slate-50 focus:border-slate-400"
@@ -422,7 +422,7 @@ export function TransactionFormPageClient({
                     key={option}
                     type="button"
                     onClick={() => updateField("type", option)}
-                    className={`rounded-2xl border px-3 py-2 text-left text-sm font-semibold transition ${
+                    className={`rounded-2xl border px-3 py-2 text-left text-base font-semibold transition sm:text-sm ${
                       isActive
                         ? `${typeButtonClasses[option]} shadow-sm ring-2 ring-offset-1 ${
                             option === "RECEITA"
@@ -452,7 +452,7 @@ export function TransactionFormPageClient({
                 }}
                 onFocus={() => setIsCategoryOpen(true)}
                 placeholder="Selecione ou busque uma categoria"
-                className={`w-full rounded-2xl border px-4 py-2 pr-10 text-sm text-slate-900 outline-none transition focus:bg-white ${
+                className={`w-full rounded-2xl border px-4 py-2 pr-10 text-base text-slate-900 outline-none transition focus:bg-white sm:text-sm ${
                   errors.category
                     ? "border-rose-300 bg-rose-50 focus:border-rose-400"
                     : "border-slate-200 bg-slate-50 focus:border-slate-400"
@@ -475,7 +475,7 @@ export function TransactionFormPageClient({
                           updateField("category", category);
                           setIsCategoryOpen(false);
                         }}
-                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition ${
+                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-base transition sm:text-sm ${
                           formData.category === category
                             ? "bg-slate-900 text-white"
                             : "text-slate-700 hover:bg-slate-50 hover:text-slate-950"
@@ -514,7 +514,7 @@ export function TransactionFormPageClient({
               type="text"
               value={formData.amount}
               onChange={(event) => updateField("amount", formatCurrencyValue(event.target.value))}
-              className={`w-full rounded-2xl border px-4 py-2 text-sm text-slate-900 outline-none transition focus:bg-white ${
+              className={`w-full rounded-2xl border px-4 py-2 text-base text-slate-900 outline-none transition focus:bg-white sm:text-sm ${
                 errors.amount
                   ? "border-rose-300 bg-rose-50 focus:border-rose-400"
                   : "border-slate-200 bg-slate-50 focus:border-slate-400"
@@ -532,7 +532,7 @@ export function TransactionFormPageClient({
                 setViewDate(parseDateValue(formData.date) ?? new Date());
                 setIsDatePickerOpen((current) => !current);
               }}
-              className={`flex w-full items-center justify-between rounded-2xl border px-4 py-2 text-left text-sm text-slate-900 outline-none transition ${
+              className={`flex w-full items-center justify-between rounded-2xl border px-4 py-2 text-left text-base text-slate-900 outline-none transition sm:text-sm ${
                 errors.date
                   ? "border-rose-300 bg-rose-50"
                   : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white"
@@ -585,7 +585,7 @@ export function TransactionFormPageClient({
                             updateField("date", day.value);
                             setIsDatePickerOpen(false);
                           }}
-                          className={`inline-flex h-10 items-center justify-center rounded-xl text-sm transition ${
+                          className={`inline-flex h-10 items-center justify-center rounded-xl text-base transition sm:text-sm ${
                             isSelected
                               ? "bg-slate-900 font-semibold text-white"
                               : day.isCurrentMonth
