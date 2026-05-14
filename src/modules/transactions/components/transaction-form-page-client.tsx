@@ -226,7 +226,6 @@ export function TransactionFormPageClient({
     }
 
     router.push(redirectTo);
-    router.refresh();
   }
 
   return (

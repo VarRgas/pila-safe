@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChartSection } from "@/modules/dashboard/components/chart-section";
 import { RecentTransactions } from "@/modules/dashboard/components/recent-transactions";
 import { SummaryCard } from "@/modules/dashboard/components/summary-card";
 import { UiSelect } from "@/components/ui-select";
@@ -16,6 +16,18 @@ import type {
   SummaryCardData,
   TransactionItem,
 } from "@/shared/types/dashboard";
+
+const ChartSection = dynamic(
+  () => import("@/modules/dashboard/components/chart-section").then((module) => module.ChartSection),
+  {
+    loading: () => (
+      <section className="grid gap-6 xl:grid-cols-2">
+        <div className="h-72 animate-pulse rounded-3xl border border-white/70 bg-white/70" />
+        <div className="h-72 animate-pulse rounded-3xl border border-white/70 bg-white/70" />
+      </section>
+    ),
+  },
+);
 
 type DashboardClientProps = {
   availableMonths: DashboardMonthOption[];

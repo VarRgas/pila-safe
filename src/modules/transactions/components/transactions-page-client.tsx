@@ -127,7 +127,6 @@ export function TransactionsPageClient({ initialTransactions }: TransactionsPage
       message: "Movimentação excluída com sucesso",
       tone: "success",
     });
-    router.refresh();
   }
 
   function handleEdit(transaction: TransactionItem) {
