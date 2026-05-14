@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { TransactionsPageClient } from "@/modules/transactions/components/transactions-page-client";
-import { getTransactionsByUserId, mapTransactionsToItems } from "@/modules/transactions/server";
+import {
+  getCategoryOptionsByType,
+  getTransactionsByUserId,
+  mapTransactionsToItems,
+} from "@/modules/transactions/server";
 import { createSupabaseServerClient } from "@/shared/lib/supabase-server";
 
 export default async function TransactionsPage() {
@@ -15,6 +19,7 @@ export default async function TransactionsPage() {
   }
 
   const transactions = await getTransactionsByUserId(user.id);
+  const categoriesByType = await getCategoryOptionsByType(user.id);
 
   return (
     <>
@@ -23,6 +28,7 @@ export default async function TransactionsPage() {
         userName={(user.user_metadata?.name as string | undefined) ?? null}
       />
       <TransactionsPageClient
+        categoriesByType={categoriesByType}
         initialTransactions={mapTransactionsToItems(transactions)}
       />
     </>

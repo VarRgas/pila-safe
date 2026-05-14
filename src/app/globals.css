@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f6f3ee;
+  --foreground: #1f2937;
 }
 
 html[data-theme="dark"] {
-  --background: #07111f;
-  --foreground: #e5eefb;
+  --background: #09131f;
+  --foreground: #eef4ff;
 }
 
 @theme inline {
@@ -30,47 +30,67 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
+  background-image:
+    radial-gradient(circle at top left, rgba(217, 119, 6, 0.08), transparent 26%),
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.08), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0));
+  background-attachment: fixed;
 }
 
 html[data-theme="dark"] body {
   background:
-    radial-gradient(circle at top, rgba(30, 64, 175, 0.18), transparent 26%),
-    radial-gradient(circle at right top, rgba(20, 184, 166, 0.12), transparent 24%),
-    linear-gradient(180deg, #07111f 0%, #0b1729 52%, #111c31 100%);
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.22), transparent 24%),
+    radial-gradient(circle at top right, rgba(6, 182, 212, 0.14), transparent 22%),
+    linear-gradient(180deg, #09131f 0%, #0d1828 50%, #101b2d 100%);
 }
 
 .app-page-shell {
   background:
-    radial-gradient(circle at top, rgba(148, 163, 184, 0.14), transparent 42%),
-    linear-gradient(180deg, #f8fafc 0%, #eef4ff 100%);
+    radial-gradient(circle at top left, rgba(245, 158, 11, 0.08), transparent 30%),
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.08), transparent 28%),
+    linear-gradient(180deg, #f6f3ee 0%, #eef3f8 100%);
 }
 
 html[data-theme="dark"] .app-page-shell {
   background:
-    radial-gradient(circle at top, rgba(30, 64, 175, 0.18), transparent 28%),
-    radial-gradient(circle at top right, rgba(20, 184, 166, 0.1), transparent 24%),
-    linear-gradient(180deg, rgba(7, 17, 31, 0.94) 0%, rgba(11, 23, 41, 0.98) 100%);
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 26%),
+    radial-gradient(circle at top right, rgba(6, 182, 212, 0.12), transparent 24%),
+    linear-gradient(180deg, rgba(9, 19, 31, 0.96) 0%, rgba(13, 24, 40, 0.98) 100%);
 }
 
 html[data-theme="dark"] .text-slate-950,
 html[data-theme="dark"] .text-slate-900 {
-  color: #f8fbff !important;
+  color: #f5f9ff !important;
 }
 
 html[data-theme="dark"] .text-slate-700,
 html[data-theme="dark"] .text-slate-600,
 html[data-theme="dark"] .text-slate-500,
 html[data-theme="dark"] .text-slate-400 {
-  color: #9fb1c9 !important;
+  color: #a9b9cf !important;
+}
+
+html[data-theme="dark"] .text-white {
+  color: #f8fbff !important;
+}
+
+html[data-theme="dark"] .text-white\/85,
+html[data-theme="dark"] .text-white\/80,
+html[data-theme="dark"] .text-white\/70 {
+  color: rgba(233, 242, 255, 0.82) !important;
 }
 
 html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .bg-white\/58,
+html[data-theme="dark"] .bg-white\/64,
+html[data-theme="dark"] .bg-white\/68,
+html[data-theme="dark"] .bg-white\/72,
 html[data-theme="dark"] .bg-white\/95,
 html[data-theme="dark"] .bg-white\/80,
 html[data-theme="dark"] .bg-white\/85,
 html[data-theme="dark"] .bg-white\/88,
 html[data-theme="dark"] .bg-white\/92 {
-  background-color: rgba(11, 23, 41, 0.9) !important;
+  background-color: rgba(14, 26, 43, 0.9) !important;
 }
 
 html[data-theme="dark"] .bg-slate-50,
@@ -78,7 +98,24 @@ html[data-theme="dark"] .bg-slate-50\/80,
 html[data-theme="dark"] .bg-slate-50\/70,
 html[data-theme="dark"] .bg-slate-50\/60,
 html[data-theme="dark"] .bg-slate-100 {
-  background-color: rgba(15, 28, 48, 0.88) !important;
+  background-color: rgba(18, 32, 52, 0.92) !important;
+}
+
+html[data-theme="dark"] .text-slate-300 {
+  color: #c5d3e6 !important;
+}
+
+html[data-theme="dark"] .text-slate-200 {
+  color: #d8e3f2 !important;
+}
+
+html[data-theme="dark"] .bg-slate-900 {
+  background-color: #13263f !important;
+}
+
+html[data-theme="dark"] .bg-slate-900\/95,
+html[data-theme="dark"] .bg-slate-900\/90 {
+  background-color: rgba(19, 38, 63, 0.94) !important;
 }
 
 html[data-theme="dark"] .border-slate-200,
@@ -86,7 +123,15 @@ html[data-theme="dark"] .border-slate-100,
 html[data-theme="dark"] .border-white\/70,
 html[data-theme="dark"] .border-slate-200\/80,
 html[data-theme="dark"] .divide-slate-200 {
-  border-color: rgba(61, 78, 104, 0.92) !important;
+  border-color: rgba(74, 92, 120, 0.9) !important;
+}
+
+html[data-theme="dark"] .ring-slate-200,
+html[data-theme="dark"] .ring-slate-200\/80,
+html[data-theme="dark"] .ring-slate-200\/70,
+html[data-theme="dark"] .ring-slate-200\/60,
+html[data-theme="dark"] .ring-white\/10 {
+  --tw-ring-color: rgba(73, 92, 121, 0.72) !important;
 }
 
 html[data-theme="dark"] .shadow-sm,
@@ -94,31 +139,46 @@ html[data-theme="dark"] .shadow-inner,
 html[data-theme="dark"] .shadow-\[0_10px_30px_rgba\(15\,23\,42\,0\.06\)\],
 html[data-theme="dark"] .shadow-\[0_12px_40px_rgba\(15\,23\,42\,0\.06\)\],
 html[data-theme="dark"] .shadow-\[0_16px_40px_rgba\(15\,23\,42\,0\.24\)\] {
-  box-shadow: 0 18px 44px rgba(2, 6, 23, 0.38) !important;
+  box-shadow: 0 18px 44px rgba(2, 8, 20, 0.42) !important;
 }
 
 html[data-theme="dark"] .bg-emerald-50 {
-  background-color: rgba(6, 95, 70, 0.22) !important;
+  background-color: rgba(5, 150, 105, 0.18) !important;
 }
 
 html[data-theme="dark"] .bg-rose-50 {
-  background-color: rgba(136, 19, 55, 0.22) !important;
+  background-color: rgba(190, 24, 93, 0.18) !important;
 }
 
 html[data-theme="dark"] .bg-sky-50 {
-  background-color: rgba(3, 105, 161, 0.22) !important;
+  background-color: rgba(2, 132, 199, 0.18) !important;
 }
 
 html[data-theme="dark"] .text-emerald-700 {
-  color: #34d399 !important;
+  color: #5eead4 !important;
 }
 
 html[data-theme="dark"] .text-rose-700 {
-  color: #fb7185 !important;
+  color: #fda4af !important;
 }
 
 html[data-theme="dark"] .text-sky-700 {
-  color: #38bdf8 !important;
+  color: #7dd3fc !important;
+}
+
+html[data-theme="dark"] .hover\:bg-slate-800:hover {
+  background-color: #1a3354 !important;
+}
+
+html[data-theme="dark"] .hover\:bg-slate-100:hover,
+html[data-theme="dark"] .hover\:bg-white:hover,
+html[data-theme="dark"] .hover\:bg-slate-50:hover {
+  background-color: rgba(24, 40, 63, 0.96) !important;
+}
+
+html[data-theme="dark"] .hover\:text-slate-950:hover,
+html[data-theme="dark"] .hover\:text-slate-900:hover {
+  color: #f8fbff !important;
 }
 
 html[data-theme="dark"] .text-emerald-600,

@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { deleteTransactionAction } from "@/modules/transactions/actions/transactions";
 import { FeedbackToast } from "@/components/feedback-toast";
+import { TransactionFormPageClient } from "@/modules/transactions/components/transaction-form-page-client";
 import { TransactionsTable } from "@/modules/transactions/components/transactions-table";
 import { UiSelect } from "@/components/ui-select";
 import { supabase } from "@/shared/lib/supabase";
-import type { TransactionItem } from "@/shared/types/dashboard";
+import type { CategoryOptionsByType, TransactionItem } from "@/shared/types/dashboard";
 
 type TransactionsPageClientProps = {
+  categoriesByType: CategoryOptionsByType;
   initialTransactions: TransactionItem[];
 };
 
@@ -25,10 +27,12 @@ function parseCurrencyValue(value: string) {
   return Number(value.replace(/[^\d,-]/g, "").replace(".", "").replace(",", ".")) || 0;
 }
 
-export function TransactionsPageClient({ initialTransactions }: TransactionsPageClientProps) {
+export function TransactionsPageClient({ categoriesByType, initialTransactions }: TransactionsPageClientProps) {
   const router = useRouter();
   const [transactions, setTransactions] = useState(initialTransactions);
+  const [currentCategoriesByType, setCurrentCategoriesByType] = useState(categoriesByType);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("date-desc");
@@ -85,6 +89,10 @@ export function TransactionsPageClient({ initialTransactions }: TransactionsPage
   useEffect(() => {
     setTransactions(initialTransactions);
   }, [initialTransactions]);
+
+  useEffect(() => {
+    setCurrentCategoriesByType(categoriesByType);
+  }, [categoriesByType]);
 
   useEffect(() => {
     const {
@@ -160,7 +168,11 @@ export function TransactionsPageClient({ initialTransactions }: TransactionsPage
                   Voltar ao dashboard
                 </Link>
                 <Link
-                  href="/lancamentos/novo?voltar=%2Flancamentos"
+                  href="#"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setIsCreateModalOpen(true);
+                  }}
                   className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-sm"
                 >
                   Novo lançamento
@@ -217,6 +229,30 @@ export function TransactionsPageClient({ initialTransactions }: TransactionsPage
       </main>
 
       {toast ? <FeedbackToast message={toast.message} tone={toast.tone} onClose={() => setToast(null)} /> : null}
+
+      {isCreateModalOpen ? (
+        <TransactionFormPageClient
+          mode="modal"
+          categoriesByType={currentCategoriesByType}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={(transaction) => {
+            setTransactions((current) => [transaction, ...current]);
+            setCurrentCategoriesByType((current) => {
+              if (transaction.category === "Sem categoria" || current[transaction.type].includes(transaction.category)) {
+                return current;
+              }
+
+              return {
+                ...current,
+                [transaction.type]: [...current[transaction.type], transaction.category].sort((first, second) =>
+                  first.localeCompare(second),
+                ),
+              };
+            });
+            setIsCreateModalOpen(false);
+          }}
+        />
+      ) : null}
     </>
   );
 }

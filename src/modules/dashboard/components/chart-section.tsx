@@ -44,7 +44,7 @@ function renderCenterValue(value: string, hideValues: boolean) {
 
   if (hideValues || !maskedValue.startsWith("R$")) {
     return (
-      <strong className="mt-2 whitespace-nowrap text-base font-semibold tracking-tight text-slate-950 sm:text-lg md:text-base lg:text-lg xl:text-xl">
+      <strong className="mt-2 whitespace-nowrap text-xs font-semibold tracking-tight text-slate-950 sm:text-sm md:text-xs lg:text-sm xl:text-base">
         {maskedValue}
       </strong>
     );
@@ -53,7 +53,7 @@ function renderCenterValue(value: string, hideValues: boolean) {
   return (
     <div className="mt-2 flex flex-col items-center leading-none">
       <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">R$</span>
-      <strong className="mt-1 whitespace-nowrap text-base font-semibold tracking-tight text-slate-950 sm:text-lg md:text-base lg:text-lg">
+      <strong className="mt-1 whitespace-nowrap text-xs font-semibold tracking-tight text-slate-950 sm:text-sm md:text-xs lg:text-sm">
         {maskedValue.replace("R$", "").trim()}
       </strong>
     </div>
@@ -64,7 +64,7 @@ export function ChartSection({ charts, className = "" }: ChartSectionProps) {
   const { hideValues } = useUi();
 
   return (
-    <section className={`grid gap-6 ${className}`.trim()}>
+    <section className={`grid gap-4 ${className}`.trim()}>
       {charts.map((chart) => {
         if (chart.kind === "timeline") {
           const allValues = chart.series.flatMap((serie) => serie.values);
@@ -73,7 +73,7 @@ export function ChartSection({ charts, className = "" }: ChartSectionProps) {
           return (
             <article
               key={chart.title}
-              className="min-w-0 rounded-3xl border border-white/70 bg-white/85 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6"
+              className="min-w-0 rounded-[1.6rem] bg-white/68 p-4 ring-1 ring-slate-200/60 sm:rounded-3xl sm:p-5"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
@@ -92,14 +92,14 @@ export function ChartSection({ charts, className = "" }: ChartSectionProps) {
               </div>
 
               {maxValue === 0 ? (
-                <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+                  <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
                   Ainda não há movimentações suficientes para montar este gráfico.
                 </div>
               ) : (
-                <div className="mt-6 overflow-x-auto">
-                  <div className="min-w-[400px] rounded-2xl border border-slate-200 bg-slate-50 p-2.5 sm:min-w-[560px] sm:p-4">
-                    <div
-                      className="grid h-48 gap-x-3 sm:h-72 sm:gap-x-5"
+                  <div className="mt-4 overflow-x-auto">
+                    <div className="min-w-[360px] rounded-2xl bg-slate-50 p-2.5 ring-1 ring-slate-200/70 sm:min-w-[520px] sm:p-4">
+                      <div
+                        className="grid h-36 gap-x-2 sm:h-64 sm:gap-x-5"
                       style={{
                         gridTemplateColumns: `40px repeat(${chart.labels.length}, minmax(0, 1fr))`,
                       }}
@@ -188,7 +188,7 @@ export function ChartSection({ charts, className = "" }: ChartSectionProps) {
           return (
             <article
               key={chart.title}
-              className="min-w-0 rounded-3xl border border-white/70 bg-white/85 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6"
+              className="min-w-0 rounded-[1.6rem] bg-white/68 p-4 ring-1 ring-slate-200/60 sm:rounded-3xl sm:p-5"
             >
               <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                 <div>
@@ -202,16 +202,16 @@ export function ChartSection({ charts, className = "" }: ChartSectionProps) {
               </div>
 
               {chart.items.every((item) => item.value === 0) ? (
-                <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+                <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
                   Ainda não há movimentações suficientes para montar este gráfico.
                 </div>
               ) : (
-                <div className="mt-6 grid gap-4">
+                <div className="mt-4 grid gap-3">
                   {chart.items.map((item, index) => {
                     const toneClass = comparisonToneClasses[item.tone];
 
                     return (
-                      <div key={item.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div key={item.label} className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200/70">
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-sm font-medium text-slate-600">{item.label}</span>
                           <span className={`rounded-full px-3 py-1 text-xs font-semibold ${toneClass.badge}`}>
@@ -219,7 +219,7 @@ export function ChartSection({ charts, className = "" }: ChartSectionProps) {
                           </span>
                         </div>
 
-                        <div className="mt-3 h-3 overflow-hidden rounded-full bg-white shadow-inner">
+                        <div className="mt-3 h-2 overflow-hidden rounded-full bg-white shadow-inner">
                           <div
                             className={`h-full rounded-full bg-gradient-to-r ${toneClass.gradient}`}
                             style={{ width: `${widths[index]}%` }}
@@ -239,7 +239,7 @@ export function ChartSection({ charts, className = "" }: ChartSectionProps) {
         return (
           <article
             key={chart.title}
-            className="min-w-0 rounded-3xl border border-white/70 bg-white/85 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6"
+            className="min-w-0 rounded-[1.6rem] bg-white/68 p-4 ring-1 ring-slate-200/60 sm:rounded-3xl sm:p-5"
           >
             <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -253,13 +253,13 @@ export function ChartSection({ charts, className = "" }: ChartSectionProps) {
             </div>
 
             {total === 0 ? (
-              <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+              <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
                 Ainda não há movimentações suficientes para montar este gráfico.
               </div>
             ) : (
-              <div className="mt-6 grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-center">
-                <div className="flex h-44 items-center justify-center">
-                  <div className="relative h-40 w-40 rounded-full bg-slate-100 p-3">
+              <div className="mt-4 grid gap-4 lg:grid-cols-[200px_minmax(0,1fr)] lg:items-center">
+                <div className="flex h-36 items-center justify-center">
+                  <div className="relative h-32 w-32 rounded-full bg-slate-100 p-2.5 sm:h-40 sm:w-40 sm:p-3">
                     <div
                       className="h-full w-full rounded-full"
                       style={{
@@ -276,7 +276,7 @@ export function ChartSection({ charts, className = "" }: ChartSectionProps) {
                           .join(", ")})`,
                       }}
                     />
-                    <div className="absolute inset-6 flex flex-col items-center justify-center rounded-full bg-white px-4 text-center shadow-inner sm:inset-7">
+                    <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-white px-3 text-center shadow-inner sm:inset-7 sm:px-4">
                       <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">
                         {chart.totalLabel}
                       </span>
@@ -285,12 +285,12 @@ export function ChartSection({ charts, className = "" }: ChartSectionProps) {
                   </div>
                 </div>
 
-                <div className="grid gap-3">
+                <div className="grid gap-2.5">
                   {chart.items.map((item) => {
                     const percentage = total === 0 ? 0 : Math.round((item.value / total) * 100);
 
                     return (
-                      <div key={item.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div key={item.label} className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200/70">
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
                             <span

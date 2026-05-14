@@ -4,17 +4,17 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { RecentTransactions } from "@/modules/dashboard/components/recent-transactions";
+import { TransactionFormPageClient } from "@/modules/transactions/components/transaction-form-page-client";
 import { SummaryCard } from "@/modules/dashboard/components/summary-card";
 import { UiSelect } from "@/components/ui-select";
 import { maskFinancialValue, useUi } from "@/shared/lib/ui-context";
 import { supabase } from "@/shared/lib/supabase";
 import type {
+  CategoryOptionsByType,
   ChartCardData,
   DashboardMonthOption,
   DashboardStatus,
   SummaryCardData,
-  TransactionItem,
 } from "@/shared/types/dashboard";
 
 const ChartSection = dynamic(
@@ -31,8 +31,8 @@ const ChartSection = dynamic(
 
 type DashboardClientProps = {
   availableMonths: DashboardMonthOption[];
+  categoriesByType: CategoryOptionsByType;
   chartCards: ChartCardData[];
-  initialTransactions: TransactionItem[];
   nextMonthProjection: {
     currentBalance: string;
     periodLabel: string;
@@ -49,8 +49,8 @@ type DashboardClientProps = {
 
 export function DashboardClient({
   availableMonths,
+  categoriesByType,
   chartCards,
-  initialTransactions,
   nextMonthProjection,
   periodLabel,
   selectedMonth,
@@ -59,9 +59,9 @@ export function DashboardClient({
 }: DashboardClientProps) {
   const router = useRouter();
   const { hideValues } = useUi();
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [currentCategoriesByType, setCurrentCategoriesByType] = useState(categoriesByType);
 
-  const recentTransactions = useMemo(() => transactions.slice(0, 5), [transactions]);
   const primaryCharts = useMemo(
     () => chartCards.filter((chart) => chart.kind === "timeline"),
     [chartCards],
@@ -70,10 +70,18 @@ export function DashboardClient({
     () => chartCards.filter((chart) => chart.kind !== "timeline"),
     [chartCards],
   );
+  const balanceCard = useMemo(
+    () => summaryCards.find((card) => card.title === "Saldo") ?? summaryCards[summaryCards.length - 1],
+    [summaryCards],
+  );
+  const supportingCards = useMemo(
+    () => summaryCards.filter((card) => card.title !== "Saldo"),
+    [summaryCards],
+  );
 
   useEffect(() => {
-    setTransactions(initialTransactions);
-  }, [initialTransactions]);
+    setCurrentCategoriesByType(categoriesByType);
+  }, [categoriesByType]);
 
   useEffect(() => {
     const {
@@ -102,82 +110,90 @@ export function DashboardClient({
 
   return (
     <>
-      <main className="app-page-shell px-4 py-5 pb-24 text-slate-900 sm:px-6 sm:py-6 sm:pb-6 lg:px-8">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-          <header className="rounded-3xl border border-white/70 bg-white/80 px-5 py-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur sm:px-6 md:px-8">
-            <div>
-              <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
-                PilaSafe
-              </span>
-              <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl md:text-4xl">
-                Dashboard financeiro
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 md:text-base">
-                Uma visão rápida da sua saúde financeira, com indicadores e movimentações mais
-                recentes em um só lugar.
-              </p>
-            </div>
-          </header>
-
-          <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-            <div className="col-span-2 xl:col-span-4">
-              <div className="rounded-3xl border border-white/70 bg-white/80 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.05)] xl:px-5 xl:py-4">
-                <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                  <div className="grid gap-3 xl:grid-cols-[2fr_1fr_1fr] xl:flex-1 xl:items-center xl:gap-4">
-                    <UiSelect
-                      label="Mês do resumo"
-                      options={[{ label: "Todos os meses", value: "" }, ...availableMonths]}
-                      value={selectedMonth}
-                      onChange={handleMonthChange}
-                    />
-
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500 sm:text-xs">
-                        Período atual
-                      </p>
-                      <strong className="mt-1.5 block text-sm font-semibold text-slate-900 sm:text-base">
-                        {periodLabel}
-                      </strong>
-                    </div>
-
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500 sm:text-xs">
-                        Status
-                      </p>
-                      <span
-                        className={`mt-2 inline-flex w-fit rounded-full px-3 py-1 text-sm font-semibold ${
-                          statusLabel === "Saudável"
-                            ? "bg-emerald-50 text-emerald-700"
-                            : statusLabel === "Neutro"
-                              ? "bg-slate-100 text-slate-700"
-                              : "bg-rose-50 text-rose-700"
-                        }`}
-                      >
-                        {statusLabel}
-                      </span>
-                    </div>
+      <main className="app-page-shell px-4 py-4 pb-24 text-slate-900 sm:px-6 sm:py-6 sm:pb-6 lg:px-8">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-6">
+          <section className="grid gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)] xl:items-start">
+            <header className="overflow-hidden rounded-[1.8rem] bg-slate-950 px-5 py-5 text-white shadow-[0_14px_40px_rgba(15,23,42,0.16)] sm:px-6 sm:py-6">
+              <div className="flex flex-col gap-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">
+                      PilaSafe
+                    </span>
+                    <strong className="mt-3 block text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
+                      {maskFinancialValue(balanceCard.amount, hideValues)}
+                    </strong>
+                    <p className="mt-2 text-sm text-slate-300">{balanceCard.change}</p>
                   </div>
 
+                  <Link
+                    href="#"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      setIsCreateModalOpen(true);
+                    }}
+                    className="hidden min-h-11 items-center justify-center rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 sm:inline-flex"
+                  >
+                    Novo lançamento
+                  </Link>
+                </div>
+
+                <div className="grid gap-2 text-sm text-slate-300 sm:grid-cols-2 sm:gap-4">
+                  <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-3">
+                    <span className="text-slate-400">Período</span>
+                    <strong className="text-right font-medium text-white">{periodLabel}</strong>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-3 sm:justify-end">
+                    <span className="text-slate-400">Status</span>
+                    <span className="font-medium text-white">{statusLabel}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </header>
 
-            {summaryCards.map((card, index) => (
+            <aside className="px-1 py-0 sm:px-2 xl:py-3">
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Resumo do período
+                </span>
+                <h2 className="mt-2 text-lg font-semibold tracking-tight text-slate-950">
+                  Visão do dashboard
+                </h2>
+              </div>
+
+              <div className="mt-4 grid gap-3">
+                <UiSelect
+                  label="Mês do resumo"
+                  options={[{ label: "Todos os meses", value: "" }, ...availableMonths]}
+                  value={selectedMonth}
+                  onChange={handleMonthChange}
+                />
+
+                <div className="grid gap-2 text-sm text-slate-600">
+                  <div className="flex items-center justify-between gap-3 border-t border-slate-200/80 pt-3">
+                    <span>Entradas, saídas e investimentos</span>
+                    <span className="text-slate-400">Resumo atual</span>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </section>
+
+          <section className="rounded-[1.6rem] bg-white/58 px-4 py-2 ring-1 ring-slate-200/60 sm:grid sm:grid-cols-3 sm:gap-3 sm:bg-transparent sm:px-0 sm:py-0 sm:ring-0 xl:grid-cols-3">
+            {supportingCards.map((card, index) => (
               <SummaryCard key={card.title} card={card} index={index} />
             ))}
           </section>
 
-          <ChartSection charts={secondaryCharts} className="xl:grid-cols-2" />
-
           <section>
-            <article className="overflow-hidden rounded-3xl border border-white/70 bg-white/85 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-              <div className="border-b border-slate-200/70 bg-slate-50/80 px-5 py-5 sm:px-6">
+            <article className="overflow-hidden rounded-[1.6rem] bg-white/64 px-4 py-4 ring-1 ring-slate-200/60 sm:px-5 sm:py-5">
+              <div>
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                   Próximo mês
                 </span>
                 <div className="mt-3 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                   <div>
-                    <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+                    <h2 className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
                       Projeção de fechamento
                     </h2>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -185,45 +201,35 @@ export function DashboardClient({
                     </p>
                   </div>
 
-                   <div className="inline-flex w-fit rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm">
-                     Saldo atual: <strong className="ml-1 font-semibold text-slate-950">{maskFinancialValue(nextMonthProjection.currentBalance, hideValues)}</strong>
-                   </div>
+                    <div className="inline-flex w-fit text-sm text-slate-600">
+                      Saldo atual: <strong className="ml-1 font-semibold text-slate-950">{maskFinancialValue(nextMonthProjection.currentBalance, hideValues)}</strong>
+                    </div>
                 </div>
               </div>
 
-              <div className="p-5 sm:p-6">
-                <div className="grid gap-6 xl:grid-cols-[1fr_minmax(340px,0.95fr)] xl:items-stretch">
-                  <div className="grid gap-3 xl:grid-cols-2 xl:grid-rows-[auto_1fr]">
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 xl:col-span-2">
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <p className="text-sm font-medium text-slate-600">Receita prevista</p>
-                           <strong className="mt-2 block text-2xl font-semibold tracking-tight text-emerald-700">
-                             {maskFinancialValue(nextMonthProjection.receita, hideValues)}
-                           </strong>
-                        </div>
-                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                          Entrada
-                        </span>
-                      </div>
+              <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_minmax(340px,0.95fr)] xl:items-start">
+                  <div className="grid gap-2.5">
+                    <div className="flex items-center justify-between gap-4 border-t border-slate-200/80 pt-3">
+                      <p className="text-sm text-slate-600">Receita prevista</p>
+                      <strong className="text-base font-semibold tracking-tight text-emerald-700 sm:text-lg">
+                        {maskFinancialValue(nextMonthProjection.receita, hideValues)}
+                      </strong>
                     </div>
-
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                      <p className="text-sm font-medium text-slate-600">Despesa prevista</p>
-                       <strong className="mt-2 block text-xl font-semibold tracking-tight text-rose-700">
-                         {maskFinancialValue(nextMonthProjection.despesa, hideValues)}
-                       </strong>
+                    <div className="flex items-center justify-between gap-4 border-t border-slate-200/80 pt-3">
+                      <p className="text-sm text-slate-600">Despesa prevista</p>
+                      <strong className="text-base font-semibold tracking-tight text-rose-700 sm:text-lg">
+                        {maskFinancialValue(nextMonthProjection.despesa, hideValues)}
+                      </strong>
                     </div>
-
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                      <p className="text-sm font-medium text-slate-600">Investimento previsto</p>
-                       <strong className="mt-2 block text-xl font-semibold tracking-tight text-sky-700">
-                         {maskFinancialValue(nextMonthProjection.investimento, hideValues)}
-                       </strong>
+                    <div className="flex items-center justify-between gap-4 border-t border-slate-200/80 pt-3">
+                      <p className="text-sm text-slate-600">Investimento previsto</p>
+                      <strong className="text-base font-semibold tracking-tight text-sky-700 sm:text-lg">
+                        {maskFinancialValue(nextMonthProjection.investimento, hideValues)}
+                      </strong>
                     </div>
                   </div>
 
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 sm:p-6 xl:h-full">
+                  <div className="pt-1">
                     <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                       Saldo projetado
                     </span>
@@ -237,10 +243,10 @@ export function DashboardClient({
                       }`}
                       >
                        {maskFinancialValue(nextMonthProjection.saldo, hideValues)}
-                     </strong>
-                    <p className="mt-3 text-sm text-slate-600">Fechamento previsto do mês.</p>
+                      </strong>
+                    <p className="mt-2 text-sm text-slate-600">Fechamento previsto do mês.</p>
 
-                    <div className="mt-6 h-3 overflow-hidden rounded-full bg-white shadow-inner">
+                    <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-200/80">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-sky-400 to-rose-400"
                         style={{ width: "100%" }}
@@ -258,28 +264,54 @@ export function DashboardClient({
                       </span>
                     </div>
                   </div>
-                </div>
               </div>
             </article>
           </section>
 
-          <section className="grid gap-4">
-            <ChartSection charts={primaryCharts} />
+          <section className="grid gap-3">
+            <ChartSection charts={secondaryCharts} className="xl:grid-cols-2" />
           </section>
 
-          <section>
-            <RecentTransactions transactions={recentTransactions} />
+          <section className="grid gap-3">
+            <ChartSection charts={primaryCharts} />
           </section>
         </div>
       </main>
 
       <Link
-        href="/lancamentos/novo?voltar=%2Fdashboard"
+        href="#"
+        onClick={(event) => {
+          event.preventDefault();
+          setIsCreateModalOpen(true);
+        }}
         className="fixed bottom-5 right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-2xl font-semibold text-white shadow-[0_16px_40px_rgba(15,23,42,0.24)] transition hover:-translate-y-0.5 hover:bg-slate-800 sm:hidden"
         aria-label="Novo lançamento"
       >
         +
       </Link>
+
+      {isCreateModalOpen ? (
+        <TransactionFormPageClient
+          mode="modal"
+          categoriesByType={currentCategoriesByType}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={(transaction) => {
+            setCurrentCategoriesByType((current) => {
+              if (transaction.category === "Sem categoria" || current[transaction.type].includes(transaction.category)) {
+                return current;
+              }
+
+              return {
+                ...current,
+                [transaction.type]: [...current[transaction.type], transaction.category].sort((first, second) =>
+                  first.localeCompare(second),
+                ),
+              };
+            });
+            setIsCreateModalOpen(false);
+          }}
+        />
+      ) : null}
     </>
   );
 }
