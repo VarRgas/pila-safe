@@ -187,6 +187,20 @@ html[data-theme="dark"] .text-sky-600 {
   color: inherit;
 }
 
+@media (min-width: 640px) {
+  .dashboard-summary-card {
+    background-color: rgba(255, 255, 255, 0.92);
+    border-color: rgba(226, 232, 240, 0.88);
+    --tw-ring-color: rgba(226, 232, 240, 0.88);
+  }
+
+  html[data-theme="dark"] .dashboard-summary-card {
+    background-color: rgba(18, 32, 52, 0.82);
+    border-color: rgba(74, 92, 120, 0.9);
+    --tw-ring-color: rgba(74, 92, 120, 0.9);
+  }
+}
+
 button {
   cursor: pointer;
 }

@@ -19,7 +19,7 @@ export function SummaryCard({ card }: SummaryCardProps) {
   const { hideValues } = useUi();
 
   return (
-    <article className="flex items-center justify-between gap-4 border-b border-slate-200/80 py-3 last:border-b-0 sm:block sm:rounded-2xl sm:border-b-0 sm:bg-white/68 sm:px-4 sm:py-4 sm:ring-1 sm:ring-slate-200/70">
+    <article className="dashboard-summary-card flex items-center justify-between gap-4 border-b border-slate-200/80 py-3 last:border-b-0 sm:block sm:rounded-2xl sm:border-b-0 sm:px-4 sm:py-4 sm:ring-1 sm:ring-slate-200/70">
       <div className="min-w-0 flex-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-xs">
           {card.title}
