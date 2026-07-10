@@ -49,6 +49,7 @@ function getDefaultFormData(): NewTransactionFormData {
     category: "",
     amount: "",
     date: getTodayDateValue(),
+    isFuture: false,
   };
 }
 
@@ -156,6 +157,7 @@ export function TransactionFormPageClient({
           category: initialData.category === "Sem categoria" ? "" : initialData.category,
           amount: initialData.amountValue,
           date: initialData.dateValue,
+          isFuture: initialData.isFuture,
         }
       : getDefaultFormData(),
   );
@@ -625,6 +627,32 @@ export function TransactionFormPageClient({
             ) : null}
 
             {errors.date ? <span className="mt-1.5 block text-sm text-rose-600">{errors.date}</span> : null}
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-slate-300 hover:bg-white">
+              <input
+                type="checkbox"
+                checked={formData.isFuture}
+                onChange={(event) => {
+                  updateField("isFuture", event.target.checked);
+                  if (event.target.checked) {
+                    const today = new Date();
+                    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+                    updateField("date", toDateInputValue(nextMonth));
+                  }
+                }}
+                className="h-4 w-4 rounded border-slate-300 text-slate-900 accent-slate-900 transition"
+              />
+              <div>
+                <span className="text-sm font-medium text-slate-900">É lançamento futuro?</span>
+                <p className="text-xs text-slate-500">
+                  {formData.isFuture
+                    ? "Aparecerá no card de projeção do próximo mês e integrará o dashboard automaticamente na virada do mês."
+                    : "Marque para que este lançamento apareça como projeção no card de próximo mês."}
+                </p>
+              </div>
+            </label>
           </div>
         </div>
 

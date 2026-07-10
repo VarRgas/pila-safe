@@ -29,11 +29,18 @@ model Transaction {
   amount      Decimal
   type        TransactionType
   date        DateTime
-  createdAt   DateTime        @default(now())
+  isFuture    Boolean              @default(false)
+  status      TransactionStatus    @default(REALIZADO)
+  createdAt   DateTime             @default(now())
   categoryId  String?
   category    Category?       @relation(fields: [categoryId], references: [id])
 
   @@index([userId])
+}
+
+enum TransactionStatus {
+  REALIZADO
+  PREVISTO
 }
 
 enum TransactionType {

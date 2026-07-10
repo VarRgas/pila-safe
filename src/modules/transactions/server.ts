@@ -37,6 +37,7 @@ type TransactionRecord = {
   amount: { toString(): string };
   type: TransactionItem["type"];
   date: Date;
+  isFuture: boolean;
   category?: { name: string } | null;
 };
 
@@ -117,6 +118,7 @@ function toTransactionItem(transaction: TransactionRecord): TransactionItem {
     amount: formatCurrency(transaction.amount.toString(), transaction.type),
     amountValue: formatCurrencyInput(transaction.amount.toString()),
     type: transaction.type,
+    isFuture: transaction.isFuture,
   };
 }
 
@@ -282,33 +284,6 @@ export async function getCategoryOptionsByType(userId: string): Promise<Category
 }
 
 export function buildChartCards(transactions: TransactionRecord[]): ChartCardData[] {
-  const totals = transactions.reduce(
-    (accumulator, transaction) => {
-      const amount = Number(transaction.amount.toString());
-
-      if (transaction.type === "RECEITA") {
-        accumulator.receita += amount;
-      }
-
-      if (transaction.type === "DESPESA") {
-        accumulator.despesa += amount;
-      }
-
-      if (transaction.type === "INVESTIMENTO") {
-        accumulator.investimento += amount;
-      }
-
-      return accumulator;
-    },
-    {
-      receita: 0,
-      despesa: 0,
-      investimento: 0,
-    },
-  );
-
-  const saldo = Math.max(totals.receita - totals.despesa - totals.investimento, 0);
-
   const monthlyMap = new Map<string, { label: string; receita: number; despesa: number; investimento: number }>();
 
   transactions.forEach((transaction) => {
@@ -360,7 +335,7 @@ export function buildChartCards(transactions: TransactionRecord[]): ChartCardDat
     {
       kind: "timeline",
       title: "Comparativo mês a mês",
-      subtitle: "Compare receitas, despesas e investimentos ao longo dos meses do período disponível.",
+      subtitle: "Compare receitas, despesas e investimentos ao longo dos meses.",
       labels: normalizedTimeline.map((month) => month.label),
       series: [
         {
@@ -380,58 +355,6 @@ export function buildChartCards(transactions: TransactionRecord[]): ChartCardDat
           tone: "info",
           values: normalizedTimeline.map((month) => month.investimento),
           formatted: normalizedTimeline.map((month) => formatAbsoluteCurrency(month.investimento)),
-        },
-      ],
-    },
-    {
-      kind: "comparison",
-      title: "Fluxo do período",
-      subtitle: "Veja quanto entrou, quanto saiu e quanto foi investido no período selecionado.",
-      items: [
-        {
-          label: "Entrou",
-          value: totals.receita,
-          formatted: formatAbsoluteCurrency(totals.receita),
-          tone: "success",
-        },
-        {
-          label: "Gastou",
-          value: totals.despesa,
-          formatted: formatAbsoluteCurrency(totals.despesa),
-          tone: "danger",
-        },
-        {
-          label: "Investiu",
-          value: totals.investimento,
-          formatted: formatAbsoluteCurrency(totals.investimento),
-          tone: "info",
-        },
-      ],
-    },
-    {
-      kind: "distribution",
-      title: "Destino da receita",
-      subtitle: "Uma visão clara de quanto da receita virou despesa, investimento ou saldo restante.",
-      totalLabel: "Receita total",
-      totalValue: formatAbsoluteCurrency(totals.receita),
-      items: [
-        {
-          label: "Despesas",
-          value: totals.despesa,
-          formatted: formatAbsoluteCurrency(totals.despesa),
-          color: "#f43f5e",
-        },
-        {
-          label: "Investimentos",
-          value: totals.investimento,
-          formatted: formatAbsoluteCurrency(totals.investimento),
-          color: "#0ea5e9",
-        },
-        {
-          label: "Saldo restante",
-          value: saldo,
-          formatted: formatAbsoluteCurrency(saldo),
-          color: "#475569",
         },
       ],
     },
@@ -539,7 +462,8 @@ export function buildNextMonthProjection(transactions: TransactionRecord[]) {
 
     return accumulator - amount;
   }, 0);
-  const nextMonthTransactions = filterTransactionsByMonth(transactions, nextMonth);
+  const futureTransactions = transactions.filter((t) => t.isFuture);
+  const nextMonthTransactions = filterTransactionsByMonth(futureTransactions, nextMonth);
 
   const totals = nextMonthTransactions.reduce(
     (accumulator, transaction) => {
@@ -593,6 +517,7 @@ export async function createTransactionForUser(userId: string, formData: NewTran
       amount: parseCurrencyToDecimalString(formData.amount),
       type: formData.type,
       date: new Date(`${formData.date}T12:00:00`),
+      isFuture: formData.isFuture,
       categoryId,
     },
     include: {
@@ -630,6 +555,7 @@ export async function updateTransactionForUser(
       amount: parseCurrencyToDecimalString(formData.amount),
       type: formData.type,
       date: new Date(`${formData.date}T12:00:00`),
+      isFuture: formData.isFuture,
       categoryId,
     },
     include: {

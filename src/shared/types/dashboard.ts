@@ -19,47 +19,18 @@ export type FilterOption = {
   active?: boolean;
 };
 
-export type ChartMetricItem = {
-  label: string;
-  value: number;
-  formatted: string;
-  tone: "success" | "danger" | "info";
+export type ChartCardData = {
+  kind: "timeline";
+  title: string;
+  subtitle: string;
+  labels: string[];
+  series: Array<{
+    label: string;
+    tone: "success" | "danger" | "info";
+    values: number[];
+    formatted: string[];
+  }>;
 };
-
-export type ChartDistributionItem = {
-  label: string;
-  value: number;
-  formatted: string;
-  color: string;
-};
-
-export type ChartCardData =
-  | {
-      kind: "comparison";
-      title: string;
-      subtitle: string;
-      items: ChartMetricItem[];
-    }
-  | {
-      kind: "timeline";
-      title: string;
-      subtitle: string;
-      labels: string[];
-      series: Array<{
-        label: string;
-        tone: "success" | "danger" | "info";
-        values: number[];
-        formatted: string[];
-      }>;
-    }
-  | {
-      kind: "distribution";
-      title: string;
-      subtitle: string;
-      items: ChartDistributionItem[];
-      totalLabel: string;
-      totalValue: string;
-    };
 
 export type TransactionType = "RECEITA" | "DESPESA" | "INVESTIMENTO";
 
@@ -74,6 +45,7 @@ export type TransactionItem = {
   amount: string;
   amountValue: string;
   type: TransactionType;
+  isFuture: boolean;
 };
 
 export type NewTransactionFormData = {
@@ -82,4 +54,5 @@ export type NewTransactionFormData = {
   category: string;
   amount: string;
   date: string;
+  isFuture: boolean;
 };

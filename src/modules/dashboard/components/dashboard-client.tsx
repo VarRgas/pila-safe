@@ -5,8 +5,11 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TransactionFormPageClient } from "@/modules/transactions/components/transaction-form-page-client";
+import { TransactionsTable } from "@/modules/transactions/components/transactions-table";
 import { SummaryCard } from "@/modules/dashboard/components/summary-card";
 import { UiSelect } from "@/components/ui-select";
+import { FeedbackToast } from "@/components/feedback-toast";
+import { deleteTransactionAction } from "@/modules/transactions/actions/transactions";
 import { maskFinancialValue, useUi } from "@/shared/lib/ui-context";
 import { supabase } from "@/shared/lib/supabase";
 import type {
@@ -15,24 +18,30 @@ import type {
   DashboardMonthOption,
   DashboardStatus,
   SummaryCardData,
+  TransactionItem,
 } from "@/shared/types/dashboard";
 
 const ChartSection = dynamic(
   () => import("@/modules/dashboard/components/chart-section").then((module) => module.ChartSection),
   {
     loading: () => (
-      <section className="grid gap-6 xl:grid-cols-2">
-        <div className="h-72 animate-pulse rounded-3xl border border-white/70 bg-white/70" />
-        <div className="h-72 animate-pulse rounded-3xl border border-white/70 bg-white/70" />
-      </section>
+      <div className="h-72 animate-pulse rounded-3xl border border-white/70 bg-white/70" />
     ),
   },
 );
+
+type ToastState = {
+  message: string;
+  tone: "success" | "error";
+} | null;
+
+type SortOption = "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
 
 type DashboardClientProps = {
   availableMonths: DashboardMonthOption[];
   categoriesByType: CategoryOptionsByType;
   chartCards: ChartCardData[];
+  initialTransactions: TransactionItem[];
   nextMonthProjection: {
     currentBalance: string;
     periodLabel: string;
@@ -47,10 +56,15 @@ type DashboardClientProps = {
   summaryCards: SummaryCardData[];
 };
 
+function parseCurrencyValue(value: string) {
+  return Number(value.replace(/[^\d,-]/g, "").replace(".", "").replace(",", ".")) || 0;
+}
+
 export function DashboardClient({
   availableMonths,
   categoriesByType,
   chartCards,
+  initialTransactions,
   nextMonthProjection,
   periodLabel,
   selectedMonth,
@@ -60,16 +74,15 @@ export function DashboardClient({
   const router = useRouter();
   const { hideValues } = useUi();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<TransactionItem | null>(null);
   const [currentCategoriesByType, setCurrentCategoriesByType] = useState(categoriesByType);
+  const [transactions, setTransactions] = useState(initialTransactions);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastState>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("date-desc");
+  const [tableSelectedMonth, setTableSelectedMonth] = useState("");
 
-  const primaryCharts = useMemo(
-    () => chartCards.filter((chart) => chart.kind === "timeline"),
-    [chartCards],
-  );
-  const secondaryCharts = useMemo(
-    () => chartCards.filter((chart) => chart.kind !== "timeline"),
-    [chartCards],
-  );
   const balanceCard = useMemo(
     () => summaryCards.find((card) => card.title === "Saldo") ?? summaryCards[summaryCards.length - 1],
     [summaryCards],
@@ -79,9 +92,51 @@ export function DashboardClient({
     [summaryCards],
   );
 
+  const tableAvailableMonths = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat("pt-BR", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+
+    return [...new Set(transactions.map((t) => t.dateValue.slice(0, 7)))]
+      .sort((first, second) => second.localeCompare(first))
+      .map((monthValue) => ({
+        value: monthValue,
+        label: formatter.format(new Date(`${monthValue}-01T00:00:00Z`)),
+      }));
+  }, [transactions]);
+
+  const visibleTransactions = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    const filteredByMonth = tableSelectedMonth
+      ? transactions.filter((t) => t.dateValue.startsWith(tableSelectedMonth))
+      : transactions;
+
+    const filteredTransactions = normalizedSearch
+      ? filteredByMonth.filter((t) => {
+          const descriptionMatch = t.description.toLowerCase().includes(normalizedSearch);
+          const categoryMatch = t.category.toLowerCase().includes(normalizedSearch);
+          return descriptionMatch || categoryMatch;
+        })
+      : filteredByMonth;
+
+    return [...filteredTransactions].sort((first, second) => {
+      if (sortBy === "date-desc") return second.dateValue.localeCompare(first.dateValue);
+      if (sortBy === "date-asc") return first.dateValue.localeCompare(second.dateValue);
+      if (sortBy === "amount-desc") return parseCurrencyValue(second.amountValue) - parseCurrencyValue(first.amountValue);
+      return parseCurrencyValue(first.amountValue) - parseCurrencyValue(second.amountValue);
+    });
+  }, [searchTerm, tableSelectedMonth, sortBy, transactions]);
+
   useEffect(() => {
     setCurrentCategoriesByType(categoriesByType);
   }, [categoriesByType]);
+
+  useEffect(() => {
+    setTransactions(initialTransactions);
+  }, [initialTransactions]);
 
   useEffect(() => {
     const {
@@ -99,13 +154,60 @@ export function DashboardClient({
 
   function handleMonthChange(month: string) {
     const params = new URLSearchParams();
-
-    if (month) {
-      params.set("mes", month);
-    }
-
+    if (month) params.set("mes", month);
     const query = params.toString();
     router.replace(query ? `/dashboard?${query}` : "/dashboard");
+  }
+
+  async function handleDelete(transaction: TransactionItem) {
+    const confirmed = window.confirm(`Deseja excluir o lançamento "${transaction.description}"?`);
+    if (!confirmed) return;
+
+    setPendingDeleteId(transaction.id);
+    setToast(null);
+
+    const result = await deleteTransactionAction(transaction.id);
+    if (!result.success) {
+      setToast({ message: result.error ?? "Não foi possível excluir a movimentação.", tone: "error" });
+      setPendingDeleteId(null);
+      return;
+    }
+
+    setTransactions((current) => current.filter((item) => item.id !== transaction.id));
+    setPendingDeleteId(null);
+    setToast({ message: "Movimentação excluída com sucesso", tone: "success" });
+  }
+
+  function handleEdit(transaction: TransactionItem) {
+    setEditingTransaction(transaction);
+  }
+
+  function handleCreateSuccess(transaction: TransactionItem) {
+    setTransactions((current) => [transaction, ...current]);
+    setCurrentCategoriesByType((current) => {
+      if (transaction.category === "Sem categoria" || current[transaction.type].includes(transaction.category)) {
+        return current;
+      }
+      return {
+        ...current,
+        [transaction.type]: [...current[transaction.type], transaction.category].sort((a, b) => a.localeCompare(b)),
+      };
+    });
+    setIsCreateModalOpen(false);
+  }
+
+  function handleEditSuccess(transaction: TransactionItem) {
+    setTransactions((current) => current.map((t) => (t.id === transaction.id ? transaction : t)));
+    setCurrentCategoriesByType((current) => {
+      if (transaction.category === "Sem categoria" || current[transaction.type].includes(transaction.category)) {
+        return current;
+      }
+      return {
+        ...current,
+        [transaction.type]: [...current[transaction.type], transaction.category].sort((a, b) => a.localeCompare(b)),
+      };
+    });
+    setEditingTransaction(null);
   }
 
   return (
@@ -126,16 +228,13 @@ export function DashboardClient({
                     <p className="mt-2 text-sm text-slate-300">{balanceCard.change}</p>
                   </div>
 
-                  <Link
-                    href="#"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      setIsCreateModalOpen(true);
-                    }}
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(true)}
                     className="hidden min-h-11 items-center justify-center rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 sm:inline-flex"
                   >
                     Novo lançamento
-                  </Link>
+                  </button>
                 </div>
 
                 <div className="grid gap-2 text-sm text-slate-300 sm:grid-cols-2 sm:gap-4">
@@ -201,115 +300,175 @@ export function DashboardClient({
                     </p>
                   </div>
 
-                    <div className="inline-flex w-fit text-sm text-slate-600">
-                      Saldo atual: <strong className="ml-1 font-semibold text-slate-950">{maskFinancialValue(nextMonthProjection.currentBalance, hideValues)}</strong>
-                    </div>
+                  <div className="inline-flex w-fit text-sm text-slate-600">
+                    Saldo atual: <strong className="ml-1 font-semibold text-slate-950">{maskFinancialValue(nextMonthProjection.currentBalance, hideValues)}</strong>
+                  </div>
                 </div>
               </div>
 
               <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_minmax(340px,0.95fr)] xl:items-start">
-                  <div className="grid gap-2.5">
-                    <div className="flex items-center justify-between gap-4 border-t border-slate-200/80 pt-3">
-                      <p className="text-sm text-slate-600">Receita prevista</p>
-                      <strong className="text-base font-semibold tracking-tight text-emerald-700 sm:text-lg">
-                        {maskFinancialValue(nextMonthProjection.receita, hideValues)}
-                      </strong>
-                    </div>
-                    <div className="flex items-center justify-between gap-4 border-t border-slate-200/80 pt-3">
-                      <p className="text-sm text-slate-600">Despesa prevista</p>
-                      <strong className="text-base font-semibold tracking-tight text-rose-700 sm:text-lg">
-                        {maskFinancialValue(nextMonthProjection.despesa, hideValues)}
-                      </strong>
-                    </div>
-                    <div className="flex items-center justify-between gap-4 border-t border-slate-200/80 pt-3">
-                      <p className="text-sm text-slate-600">Investimento previsto</p>
-                      <strong className="text-base font-semibold tracking-tight text-sky-700 sm:text-lg">
-                        {maskFinancialValue(nextMonthProjection.investimento, hideValues)}
-                      </strong>
-                    </div>
+                <div className="grid gap-2.5">
+                  <div className="flex items-center justify-between gap-4 border-t border-slate-200/80 pt-3">
+                    <p className="text-sm text-slate-600">Receita prevista</p>
+                    <strong className="text-base font-semibold tracking-tight text-emerald-700 sm:text-lg">
+                      {maskFinancialValue(nextMonthProjection.receita, hideValues)}
+                    </strong>
                   </div>
+                  <div className="flex items-center justify-between gap-4 border-t border-slate-200/80 pt-3">
+                    <p className="text-sm text-slate-600">Despesa prevista</p>
+                    <strong className="text-base font-semibold tracking-tight text-rose-700 sm:text-lg">
+                      {maskFinancialValue(nextMonthProjection.despesa, hideValues)}
+                    </strong>
+                  </div>
+                  <div className="flex items-center justify-between gap-4 border-t border-slate-200/80 pt-3">
+                    <p className="text-sm text-slate-600">Investimento previsto</p>
+                    <strong className="text-base font-semibold tracking-tight text-sky-700 sm:text-lg">
+                      {maskFinancialValue(nextMonthProjection.investimento, hideValues)}
+                    </strong>
+                  </div>
+                </div>
 
-                  <div className="pt-1">
-                    <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                      Saldo projetado
+                <div className="pt-1">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Saldo projetado
+                  </span>
+                  <strong
+                    className={`mt-3 block text-3xl font-semibold tracking-tight sm:text-4xl ${
+                      nextMonthProjection.saldo.includes("-")
+                        ? "text-rose-700"
+                        : nextMonthProjection.saldo.includes("R$ 0,00")
+                          ? "text-slate-950"
+                          : "text-emerald-700"
+                    }`}
+                  >
+                    {maskFinancialValue(nextMonthProjection.saldo, hideValues)}
+                  </strong>
+                  <p className="mt-2 text-sm text-slate-600">Fechamento previsto do mês.</p>
+
+                  <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-200/80">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-sky-400 to-rose-400"
+                      style={{ width: "100%" }}
+                    />
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-3 text-xs font-medium text-slate-500">
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Receita prevista
                     </span>
-                    <strong
-                       className={`mt-3 block text-3xl font-semibold tracking-tight sm:text-4xl ${
-                          nextMonthProjection.saldo.includes("-")
-                            ? "text-rose-700"
-                          : nextMonthProjection.saldo.includes("R$ 0,00")
-                            ? "text-slate-950"
-                            : "text-emerald-700"
-                      }`}
-                      >
-                       {maskFinancialValue(nextMonthProjection.saldo, hideValues)}
-                      </strong>
-                    <p className="mt-2 text-sm text-slate-600">Fechamento previsto do mês.</p>
-
-                    <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-200/80">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-sky-400 to-rose-400"
-                        style={{ width: "100%" }}
-                      />
-                    </div>
-                    <div className="mt-3 flex flex-wrap gap-3 text-xs font-medium text-slate-500">
-                      <span className="inline-flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Receita prevista
-                      </span>
-                      <span className="inline-flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full bg-rose-500" /> Despesa prevista
-                      </span>
-                      <span className="inline-flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full bg-sky-500" /> Investimento previsto
-                      </span>
-                    </div>
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-rose-500" /> Despesa prevista
+                    </span>
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-sky-500" /> Investimento previsto
+                    </span>
                   </div>
+                </div>
               </div>
             </article>
           </section>
 
-          <section className="grid gap-3">
-            <ChartSection charts={secondaryCharts} className="xl:grid-cols-2" />
+          <section className="grid gap-4">
+            <ChartSection charts={chartCards} />
           </section>
 
-          <section className="grid gap-3">
-            <ChartSection charts={primaryCharts} />
+          <section className="rounded-[1.6rem] bg-white/68 p-4 ring-1 ring-slate-200/60 sm:rounded-3xl sm:p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Todos os lançamentos
+                </span>
+                <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+                  Movimentações da conta
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Consulte, edite e exclua os lançamentos vinculados à sua conta.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(true)}
+                className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-sm"
+              >
+                Novo lançamento
+              </button>
+            </div>
+
+            <div className="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-3 sm:items-end">
+              <label className="min-w-0">
+                <span className="mb-2 block text-sm font-medium text-slate-700">Buscar</span>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Buscar por descrição ou categoria"
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                />
+              </label>
+
+              <UiSelect
+                label="Mês"
+                options={[{ label: "Todos os meses", value: "" }, ...tableAvailableMonths]}
+                value={tableSelectedMonth}
+                onChange={setTableSelectedMonth}
+              />
+
+              <UiSelect
+                label="Ordenar por"
+                options={[
+                  { label: "Data mais recente", value: "date-desc" },
+                  { label: "Data mais antiga", value: "date-asc" },
+                  { label: "Maior valor", value: "amount-desc" },
+                  { label: "Menor valor", value: "amount-asc" },
+                ]}
+                value={sortBy}
+                onChange={(value) => setSortBy(value as SortOption)}
+              />
+            </div>
+
+            <div className="mt-4 text-sm text-slate-500">
+              {visibleTransactions.length} lançamento(s) encontrado(s)
+            </div>
+
+            <div className="mt-6">
+              <TransactionsTable
+                transactions={visibleTransactions}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                pendingDeleteId={pendingDeleteId}
+              />
+            </div>
           </section>
         </div>
       </main>
 
-      <Link
-        href="#"
-        onClick={(event) => {
-          event.preventDefault();
-          setIsCreateModalOpen(true);
-        }}
+      <button
+        type="button"
+        onClick={() => setIsCreateModalOpen(true)}
         className="fixed bottom-5 right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-2xl font-semibold text-white shadow-[0_16px_40px_rgba(15,23,42,0.24)] transition hover:-translate-y-0.5 hover:bg-slate-800 sm:hidden"
         aria-label="Novo lançamento"
       >
         +
-      </Link>
+      </button>
+
+      {toast ? <FeedbackToast message={toast.message} tone={toast.tone} onClose={() => setToast(null)} /> : null}
 
       {isCreateModalOpen ? (
         <TransactionFormPageClient
           mode="modal"
           categoriesByType={currentCategoriesByType}
           onClose={() => setIsCreateModalOpen(false)}
-          onSuccess={(transaction) => {
-            setCurrentCategoriesByType((current) => {
-              if (transaction.category === "Sem categoria" || current[transaction.type].includes(transaction.category)) {
-                return current;
-              }
+          onSuccess={handleCreateSuccess}
+        />
+      ) : null}
 
-              return {
-                ...current,
-                [transaction.type]: [...current[transaction.type], transaction.category].sort((first, second) =>
-                  first.localeCompare(second),
-                ),
-              };
-            });
-            setIsCreateModalOpen(false);
-          }}
+      {editingTransaction ? (
+        <TransactionFormPageClient
+          mode="modal"
+          categoriesByType={currentCategoriesByType}
+          initialData={editingTransaction}
+          onClose={() => setEditingTransaction(null)}
+          onSuccess={handleEditSuccess}
         />
       ) : null}
     </>

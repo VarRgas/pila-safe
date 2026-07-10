@@ -14,7 +14,6 @@ type AppHeaderProps = {
 
 const navigationItems = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/lancamentos", label: "Lançamentos" },
 ];
 
 export function AppHeader({ userEmail, userName }: AppHeaderProps) {
